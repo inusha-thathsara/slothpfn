@@ -53,8 +53,6 @@ const elements = {
   simConfidenceText: document.getElementById('simConfidenceText'),
   simProgressBar: document.getElementById('simProgressBar'),
   simClassProbabilities: document.getElementById('simClassProbabilities'),
-  devPostMarkdown: document.getElementById('devPostMarkdown'),
-  btnCopyDevPost: document.getElementById('btnCopyDevPost'),
   btnExportCSV: document.getElementById('btnExportCSV'),
   tokenModal: document.getElementById('tokenModal'),
   modalTokenInput: document.getElementById('modalTokenInput'),
@@ -351,9 +349,6 @@ function renderResults(result) {
 
   // 5. Render Simulator Controls
   renderSimulatorControls(result);
-
-  // 6. Generate DEV Post Markdown
-  generateDevPostMarkdown(result);
 
   // Smooth scroll down to results
   elements.resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -652,11 +647,10 @@ async function runSimulation() {
 }
 
 // ==========================================
-// Export & DEV Post Markdown Generator
+// Export CSV
 // ==========================================
 function initExportEvents() {
   elements.btnExportCSV.addEventListener('click', exportPredictionsCSV);
-  elements.btnCopyDevPost.addEventListener('click', copyDevPostMarkdown);
 }
 
 function exportPredictionsCSV() {
@@ -675,63 +669,6 @@ function exportPredictionsCSV() {
   a.setAttribute('download', `slothpfn_predictions_${Date.now()}.csv`);
   a.click();
   showToast('Exported predictions CSV!', '📥');
-}
-
-function generateDevPostMarkdown(result) {
-  const isClf = result.task_type === 'classification';
-  const metricVal = isClf ? `${result.metrics.tabpfn.accuracy}% Accuracy` : `R² = ${result.metrics.tabpfn.r2_score}`;
-  const baseVal = isClf ? `${result.metrics.baseline.accuracy}%` : `R² = ${result.metrics.baseline.r2_score}`;
-  const timeSaved = result.sloth_insights.time_saved_estimate;
-  const topFeatures = result.feature_importance.slice(0, 3).map(f => f.feature).join(', ');
-
-  const md = `---
-title: "SlothPFN: Zero-Effort Tabular AI Agent with Prior Labs TabPFN"
-published: false
-tags: devchallenge, hf26challenge, ai, machinelearning, tabpfn
----
-
-*This is a submission for the [Hacktoberfest Open-Source AI Challenge Week 3: Slow and Steady](https://dev.to/challenges/hacktoberfest-week3-2026-10-19)*
-
-## What I Built
-**SlothPFN** is an open-source tabular AI agent built for unapologetically lazy developers and data scientists. In celebration of International Sloth Day, SlothPFN automates the most dreaded parts of data science: manual feature encoding, missing value imputation, hyperparameter tuning loops, and model benchmarking.
-
-Users drop any raw CSV file and do *literally nothing*. SlothPFN instantly infers column semantics, auto-detects target objectives, runs Prior Labs' pre-trained **TabPFN** foundation model in a single forward pass, generates causal feature drivers, and launches an interactive scenario simulator.
-
-## Demo
-- **Live Demo / Web Interface:** [Explore SlothPFN Live Demo](#)
-- **Video Walkthrough:** [YouTube / Loom Demo Link](#)
-
-## Code
-{% github https://github.com/your-username/slothpfn %}
-
-## How I Built It
-- **Core AI:** Powered by [Prior Labs' TabPFN-3.5](https://priorlabs.ai) foundation model for tabular data. Instead of fitting gradient-boosted decision trees over hundreds of iterations, TabPFN operates as a pre-trained transformer over causal priors, producing calibrated Bayesian posterior distributions in less than 2 seconds.
-- **Backend:** Built using Python 3.14 with FastAPI, Pandas, and Scikit-Learn for baseline benchmarking and scenario simulation.
-- **Frontend:** Responsive, glassmorphic dark-mode dashboard built with vanilla CSS, modern typography (Outfit & Inter), and Chart.js visualizations.
-
-## Why Does Open Innovation Matter?
-Open innovation is essential for tabular AI because sensitive business and personal data (such as financial records, patient diagnostics, and customer churn) should never be blindly streamed to closed proprietary cloud APIs. 
-With open-weight models like **TabPFN**, full Bayesian tabular inference can run locally on standard consumer CPUs and GPUs without internet access, zero API costs, and total data privacy.
-
-## The Lazy Payoff
-- **Effort Saved:** An estimated **${timeSaved}** by eliminating manual hyperparameter grid searching and one-hot encoding pipelines.
-- **Results:** On dataset \`${result.filename}\`, TabPFN achieved **${metricVal}** (compared to traditional baseline of ${baseVal}) with top drivers being **${topFeatures}**.
-
-## Prize Categories
-- **Primary Track:** Hacktoberfest Open-Source AI Challenge: Week 3 (Slow and Steady)
-- **Partner Category:** Best Use of TabPFN ($200 Prior Labs Partner Prize)
-
-<!-- Optional: Embed your DevRelay Agent Session Transcript -->
-<!-- {% agent_session session_id %} -->
-`;
-
-  elements.devPostMarkdown.value = md;
-}
-
-function copyDevPostMarkdown() {
-  elements.devPostMarkdown.select();
-  navigator.clipboard.writeText(elements.devPostMarkdown.value);
-  showToast('Copied DEV submission markdown to clipboard!', '📋');
 }
 
 // ==========================================

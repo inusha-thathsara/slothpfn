@@ -169,23 +169,6 @@ body {
   box-shadow: 0 0 8px var(--color-emerald);
 }
 
-.badge-hacktoberfest {
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #ff8c00;
-  background: rgba(255, 140, 0, 0.1);
-  border: 1px solid rgba(255, 140, 0, 0.25);
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  transition: var(--transition);
-}
-
-.badge-hacktoberfest:hover {
-  background: rgba(255, 140, 0, 0.2);
-  transform: translateY(-1px);
-}
-
 /* Hero Section */
 .hero-section {
   text-align: center;
@@ -917,24 +900,6 @@ body {
   display: flex;
   justify-content: space-between;
   color: var(--text-muted);
-}
-
-/* Markdown Textarea */
-.markdown-preview-container {
-  margin-top: 12px;
-}
-
-.markdown-textarea {
-  width: 100%;
-  background: #0b0f19;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  color: #e2e8f0;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  padding: 14px;
-  resize: vertical;
-  line-height: 1.5;
 }
 
 /* Modal */
