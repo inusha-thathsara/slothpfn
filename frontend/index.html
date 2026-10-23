@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SlothPFN - Zero-Effort Tabular AI Agent | Hacktoberfest 2026</title>
+  <meta name="description" content="An open-source lazy tabular prediction agent powered by Prior Labs' TabPFN foundation model. Zero tuning, zero code, instant Bayesian predictions.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦥</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Background Glow Accents -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Navigation Bar -->
+  <header class="app-header">
+    <div class="container header-container">
+      <div class="brand">
+        <span class="brand-icon">🦥</span>
+        <div class="brand-text">
+          <span class="brand-title">SlothPFN</span>
+          <span class="brand-subtitle">Zero-Effort Tabular AI</span>
+        </div>
+      </div>
+
+      <div class="header-badges">
+        <div id="engineModeBadge" class="status-pill status-demo">
+          <span class="status-dot"></span>
+          <span id="engineModeText">Prior Simulator Mode</span>
+        </div>
+        <button id="btnOpenSettings" class="btn btn-secondary btn-sm" title="Configure Prior Labs TabPFN Token">
+          ⚙️ Prior Labs Token
+        </button>
+        <a href="https://dev.to/challenges/hacktoberfest-week3-2026-10-19" target="_blank" rel="noopener noreferrer" class="badge-hacktoberfest">
+          🎃 Hacktoberfest Week 3
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="container main-content">
+    
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-tag">
+        <span class="sloth-leaf">🌿</span> Slow & Steady AI • Theme: Rewards Laziness
+      </div>
+      <h1 class="hero-title">
+        The Tabular AI Agent for <span class="gradient-text">Unapologetically Lazy</span> Builders.
+      </h1>
+      <p class="hero-description">
+        No feature engineering. No hyperparameter grid search. No overfitting panic.
+        Drop any CSV and let <strong>Prior Labs' TabPFN</strong> foundation model compute instant Bayesian predictions in a single forward pass.
+      </p>
+    </section>
+
+    <!-- Quick Samples Banner -->
+    <section class="samples-section card">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Too lazy to find a dataset? Try one-click samples:</h2>
+          <p class="section-subtitle">Pre-loaded realistic datasets for instant testing</p>
+        </div>
+        <span class="pill-tag">Instant 1-Click Load</span>
+      </div>
+      <div id="samplesList" class="samples-grid">
+        <!-- Dynamically injected sample buttons -->
+        <div class="loading-placeholder">Loading sample datasets...</div>
+      </div>
+    </section>
+
+    <!-- Upload & Dataset Inspection Section -->
+    <section class="upload-section card">
+      <div class="upload-dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".csv,.tsv,.txt" class="file-input-hidden">
+        <div class="dropzone-content">
+          <div class="dropzone-icon">📁</div>
+          <h3 class="dropzone-title">Drag & drop your CSV here</h3>
+          <p class="dropzone-subtitle">or click to browse from your computer (auto-cleans categoricals & missing values)</p>
+          <div class="dropzone-tags">
+            <span>Supports .csv</span>
+            <span>Supports .tsv</span>
+            <span>Zero Data Stored</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dataset Preview Bar (Hidden initially) -->
+      <div id="datasetDetailsBar" class="dataset-details-bar hidden">
+        <div class="dataset-meta-item">
+          <span class="meta-label">Active File:</span>
+          <span id="metaFilename" class="meta-value bold highlight"></span>
+        </div>
+        <div class="dataset-meta-item">
+          <span class="meta-label">Total Rows:</span>
+          <span id="metaRows" class="meta-value"></span>
+        </div>
+        <div class="dataset-meta-item">
+          <span class="meta-label">Columns:</span>
+          <span id="metaCols" class="meta-value"></span>
+        </div>
+        <div class="dataset-meta-item">
+          <span class="meta-label">Auto-Detected Task:</span>
+          <span id="metaTask" class="meta-value badge-task"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuration & Launch Bar -->
+    <section id="configBar" class="config-bar card hidden">
+      <div class="config-grid">
+        <div class="config-item">
+          <label for="targetColSelect" class="config-label">
+            Target Column to Predict <span class="badge-auto">Auto-Inferred</span>
+          </label>
+          <select id="targetColSelect" class="config-select">
+            <!-- Injected options -->
+          </select>
+        </div>
+
+        <div class="config-item">
+          <label for="taskTypeSelect" class="config-label">Task Type</label>
+          <select id="taskTypeSelect" class="config-select">
+            <option value="classification">Classification (Categories / Discrete)</option>
+            <option value="regression">Regression (Continuous Numerical)</option>
+          </select>
+        </div>
+
+        <div class="config-item action-item">
+          <button id="btnRunPrediction" class="btn btn-primary btn-large">
+            <span class="btn-icon">⚡</span> Run Lazy AI Prediction
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading State -->
+    <div id="predictionSpinner" class="prediction-spinner card hidden">
+      <div class="sloth-loader">🦥</div>
+      <h3 class="loader-title">The Sloth is thinking so you don't have to...</h3>
+      <p class="loader-subtitle">Passing tabular tokens through TabPFN's pre-trained causal Bayesian prior...</p>
+    </div>
+
+    <!-- Results Section (Hidden until prediction runs) -->
+    <section id="resultsSection" class="results-section hidden">
+      
+      <!-- Sloth Insights Callout -->
+      <div class="card sloth-callout-card">
+        <div class="sloth-callout-header">
+          <div class="callout-avatar">🦥</div>
+          <div>
+            <h3 id="slothHeadline" class="callout-headline"></h3>
+            <p id="slothTimeSaved" class="callout-badge"></p>
+          </div>
+        </div>
+        <div class="callout-body">
+          <p id="slothSummary" class="callout-p"></p>
+          <div class="callout-divider"></div>
+          <p id="slothDrivers" class="callout-p"></p>
+          <p id="slothVerdict" class="callout-verdict"></p>
+        </div>
+      </div>
+
+      <!-- Benchmark Cards Grid -->
+      <div class="metrics-grid">
+        <div class="card metric-card model-tabpfn">
+          <div class="metric-header">
+            <div class="model-badge">
+              <span class="model-dot"></span> TabPFN Foundation AI
+            </div>
+            <span class="speed-pill" id="tabpfnSpeed"></span>
+          </div>
+          <div class="metric-main">
+            <div class="metric-score" id="tabpfnScore">--</div>
+            <div class="metric-score-label" id="tabpfnScoreLabel">Accuracy</div>
+          </div>
+          <p class="metric-footnote">Instant prior-fitted transformer • Zero tuning loops</p>
+        </div>
+
+        <div class="card metric-card model-baseline">
+          <div class="metric-header">
+            <div class="model-badge baseline-badge">
+              <span class="model-dot-neutral"></span> Traditional Random Forest
+            </div>
+            <span class="speed-pill pill-neutral" id="baselineSpeed"></span>
+          </div>
+          <div class="metric-main">
+            <div class="metric-score" id="baselineScore">--</div>
+            <div class="metric-score-label" id="baselineScoreLabel">Accuracy</div>
+          </div>
+          <p class="metric-footnote">Manual tree fitting baseline</p>
+        </div>
+
+        <div class="card metric-card model-diff">
+          <div class="metric-header">
+            <span class="diff-title">Lazy Advantage</span>
+            <span class="win-pill">Prior Labs TabPFN</span>
+          </div>
+          <div class="metric-main">
+            <div class="metric-score highlight-green" id="speedupFactor">--</div>
+            <div class="metric-score-label">Faster Setup & Evaluation</div>
+          </div>
+          <p class="metric-footnote">Zero manual feature scaling or iterative grid loops required</p>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-grid">
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3 class="card-title">Key Feature Drivers (Causal Importance)</h3>
+            <span class="card-hint">Which factors mattered most</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="featureImportanceChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3 class="card-title" id="secondaryChartTitle">Prediction Matrix</h3>
+            <span class="card-hint" id="secondaryChartHint">Model accuracy distribution</span>
+          </div>
+          <div class="chart-wrapper" id="secondaryChartWrapper">
+            <canvas id="secondaryChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Predictions Sample Table -->
+      <div class="card table-card">
+        <div class="card-header flex-between">
+          <div>
+            <h3 class="card-title">Sample Test Set Predictions</h3>
+            <span class="card-hint">Ground Truth vs TabPFN Zero-Shot Prediction with Confidence</span>
+          </div>
+          <button id="btnExportCSV" class="btn btn-secondary btn-sm">
+            📥 Export Predictions CSV
+          </button>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="predictionsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Actual Value</th>
+                <th>TabPFN Prediction</th>
+                <th>Confidence / Error</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="predictionsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Interactive What-If Scenario Simulator -->
+      <div class="card simulator-card">
+        <div class="card-header flex-between">
+          <div>
+            <h3 class="card-title">🎛️ Interactive "What-If" Scenario Simulator</h3>
+            <span class="card-hint">Tweak any feature value and watch TabPFN recalculate probabilities in real time</span>
+          </div>
+          <button id="btnSimulate" class="btn btn-primary btn-sm">
+            ⚡ Recalculate
+          </button>
+        </div>
+
+        <div class="simulator-layout">
+          <div id="simulatorControls" class="simulator-controls-grid">
+            <!-- Dynamically populated sliders & inputs -->
+          </div>
+
+          <div class="simulator-result-box">
+            <span class="sim-label">Predicted Outcome</span>
+            <div id="simResultValue" class="sim-value">--</div>
+            <div id="simConfidenceBarContainer" class="sim-conf-container">
+              <div class="sim-conf-header">
+                <span>Confidence</span>
+                <span id="simConfidenceText">--%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div id="simProgressBar" class="progress-bar-fill" style="width: 0%"></div>
+              </div>
+            </div>
+            <div id="simClassProbabilities" class="sim-classes-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export DEV Post Template Card -->
+      <div class="card export-card">
+        <div class="card-header flex-between">
+          <div>
+            <h3 class="card-title">📝 DEV Post Submission Markdown Helper</h3>
+            <span class="card-hint">Formatted with the official Hacktoberfest Week 3 template</span>
+          </div>
+          <button id="btnCopyDevPost" class="btn btn-secondary btn-sm">
+            📋 Copy Markdown
+          </button>
+        </div>
+        <div class="markdown-preview-container">
+          <textarea id="devPostMarkdown" class="markdown-textarea" readonly rows="12"></textarea>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Prior Labs API Token Modal -->
+  <div id="tokenModal" class="modal-overlay hidden">
+    <div class="modal-dialog card">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Prior Labs TabPFN Settings</h3>
+        <button id="btnCloseModal" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-p">
+          Prior Labs' <strong>TabPFN-3.5</strong> is an open-weight tabular foundation model.
+          For local non-commercial inference, you can accept the license and copy your free token:
+        </p>
+        <ol class="modal-steps">
+          <li>Register or log in at <a href="https://ux.priorlabs.ai" target="_blank" rel="noopener">ux.priorlabs.ai</a></li>
+          <li>Accept the license terms under the <em>Licenses</em> tab</li>
+          <li>Copy your API key from <a href="https://ux.priorlabs.ai/account" target="_blank" rel="noopener">ux.priorlabs.ai/account</a></li>
+        </ol>
+        <div class="input-group">
+          <label for="modalTokenInput" class="input-label">TabPFN API Key / Token</label>
+          <input type="password" id="modalTokenInput" class="text-input" placeholder="pfn_live_...">
+        </div>
+        <div class="modal-note">
+          ℹ️ <em>If you don't have a token right now, don't worry! SlothPFN automatically runs in <strong>Local Demo / Prior Simulator Mode</strong> so you can test every feature right out of the box with zero delays.</em>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnCancelToken" class="btn btn-secondary">Cancel</button>
+        <button id="btnSaveToken" class="btn btn-primary">Save & Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-left">
+        <span class="footer-brand">SlothPFN</span> • Built for <a href="https://dev.to/challenges/hacktoberfest-week3-2026-10-19" target="_blank" rel="noopener">Hacktoberfest Open-Source AI Challenge: Week 3</a>.
+      </div>
+      <div class="footer-right">
+        <span>Powered by <a href="https://priorlabs.ai" target="_blank" rel="noopener">Prior Labs TabPFN</a></span>
+        <span>•</span>
+        <span>MIT Open Source</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
