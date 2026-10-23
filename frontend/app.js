@@ -17,7 +17,6 @@ const state = {
 const elements = {
   engineModeBadge: document.getElementById('engineModeBadge'),
   engineModeText: document.getElementById('engineModeText'),
-  btnOpenSettings: document.getElementById('btnOpenSettings'),
   samplesList: document.getElementById('samplesList'),
   dropzone: document.getElementById('dropzone'),
   fileInput: document.getElementById('fileInput'),
@@ -54,11 +53,6 @@ const elements = {
   simProgressBar: document.getElementById('simProgressBar'),
   simClassProbabilities: document.getElementById('simClassProbabilities'),
   btnExportCSV: document.getElementById('btnExportCSV'),
-  tokenModal: document.getElementById('tokenModal'),
-  modalTokenInput: document.getElementById('modalTokenInput'),
-  btnCloseModal: document.getElementById('btnCloseModal'),
-  btnCancelToken: document.getElementById('btnCancelToken'),
-  btnSaveToken: document.getElementById('btnSaveToken'),
   toastContainer: document.getElementById('toastContainer'),
 };
 
@@ -71,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initUploadEvents();
   initPredictionEvents();
   initSimulatorEvents();
-  initModalEvents();
   initExportEvents();
 });
 
@@ -669,51 +662,4 @@ function exportPredictionsCSV() {
   a.setAttribute('download', `slothpfn_predictions_${Date.now()}.csv`);
   a.click();
   showToast('Exported predictions CSV!', '📥');
-}
-
-// ==========================================
-// Prior Labs Settings Modal
-// ==========================================
-function initModalEvents() {
-  elements.btnOpenSettings.addEventListener('click', () => {
-    elements.tokenModal.classList.remove('hidden');
-    elements.modalTokenInput.focus();
-  });
-
-  elements.btnCloseModal.addEventListener('click', closeModal);
-  elements.btnCancelToken.addEventListener('click', closeModal);
-
-  elements.btnSaveToken.addEventListener('click', async () => {
-    const token = elements.modalTokenInput.value.trim();
-    showToast('Validating Prior Labs token...', '🔑');
-
-    try {
-      const res = await fetch('/api/settings/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token })
-      });
-
-      const data = await res.json();
-      elements.engineModeText.textContent = data.mode;
-      if (data.is_live_tabpfn) {
-        elements.engineModeBadge.className = 'status-pill status-live';
-        showToast('TabPFN-3.5 Live Engine Connected!', '🟢');
-      } else {
-        elements.engineModeBadge.className = 'status-pill status-demo';
-        showToast('Running in Prior Simulator Mode', 'ℹ️');
-      }
-      closeModal();
-    } catch (err) {
-      showToast('Error setting token', '❌');
-    }
-  });
-
-  elements.tokenModal.addEventListener('click', (e) => {
-    if (e.target === elements.tokenModal) closeModal();
-  });
-}
-
-function closeModal() {
-  elements.tokenModal.classList.add('hidden');
 }

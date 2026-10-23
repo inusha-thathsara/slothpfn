@@ -36,15 +36,22 @@ SESSION_STATE: Dict[str, Any] = {
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
 
 
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+ENV_PATH = os.path.join(ROOT_DIR, ".env")
+
+
 @app.get("/api/health")
 async def health_check():
+    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    token = os.environ.get("TABPFN_TOKEN", "").strip()
+    predictor_instance.set_token(token)
     return {
         "status": "healthy",
         "app_name": "SlothPFN",
         "python_version": sys.version.split(" ")[0],
         "has_token": bool(predictor_instance.api_token),
         "is_live_tabpfn": predictor_instance.is_live_tabpfn_active(),
-        "mode": "Prior Labs TabPFN-3.5 Active" if predictor_instance.is_live_tabpfn_active() else "Prior Simulator / Local Demo Mode",
+        "mode": "Prior Labs TabPFN-3.5 Active (.env)" if predictor_instance.is_live_tabpfn_active() else "Prior Simulator / Local Demo Mode",
         "has_active_dataset": SESSION_STATE["df"] is not None,
         "active_filename": SESSION_STATE["filename"]
     }
@@ -154,16 +161,9 @@ async def simulate_what_if(payload: Dict[str, Any] = Body(...)):
         raise HTTPException(status_code=500, detail=f"Simulation error: {str(e)}")
 
 
-@app.post("/api/settings/token")
-async def set_token(payload: Dict[str, str] = Body(...)):
-    token = payload.get("token", "").strip()
-    predictor_instance.set_token(token)
-    return {
-        "status": "updated",
-        "has_token": bool(token),
-        "is_live_tabpfn": predictor_instance.is_live_tabpfn_active(),
-        "mode": "Prior Labs TabPFN-3.5 Active" if predictor_instance.is_live_tabpfn_active() else "Prior Simulator / Local Demo Mode"
-    }
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # Mount frontend static files

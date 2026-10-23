@@ -33,9 +33,6 @@
           <span class="status-dot"></span>
           <span id="engineModeText">Prior Simulator Mode</span>
         </div>
-        <button id="btnOpenSettings" class="btn btn-secondary btn-sm" title="Configure Prior Labs TabPFN Token">
-          ⚙️ Prior Labs Token
-        </button>
       </div>
     </div>
   </header>
@@ -296,38 +293,6 @@
     </section>
 
   </main>
-
-  <!-- Prior Labs API Token Modal -->
-  <div id="tokenModal" class="modal-overlay hidden">
-    <div class="modal-dialog card">
-      <div class="modal-header">
-        <h3 class="modal-title">⚙️ Prior Labs TabPFN Settings</h3>
-        <button id="btnCloseModal" class="modal-close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-p">
-          Prior Labs' <strong>TabPFN-3.5</strong> is an open-weight tabular foundation model.
-          For local non-commercial inference, you can accept the license and copy your free token:
-        </p>
-        <ol class="modal-steps">
-          <li>Register or log in at <a href="https://ux.priorlabs.ai" target="_blank" rel="noopener">ux.priorlabs.ai</a></li>
-          <li>Accept the license terms under the <em>Licenses</em> tab</li>
-          <li>Copy your API key from <a href="https://ux.priorlabs.ai/account" target="_blank" rel="noopener">ux.priorlabs.ai/account</a></li>
-        </ol>
-        <div class="input-group">
-          <label for="modalTokenInput" class="input-label">TabPFN API Key / Token</label>
-          <input type="password" id="modalTokenInput" class="text-input" placeholder="pfn_live_...">
-        </div>
-        <div class="modal-note">
-          ℹ️ <em>If you don't have a token right now, don't worry! SlothPFN automatically runs in <strong>Local Demo / Prior Simulator Mode</strong> so you can test every feature right out of the box with zero delays.</em>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="btnCancelToken" class="btn btn-secondary">Cancel</button>
-        <button id="btnSaveToken" class="btn btn-primary">Save & Connect</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>

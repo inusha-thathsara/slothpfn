@@ -4,6 +4,14 @@ import math
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, List, Optional, Tuple
+from dotenv import load_dotenv
+
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+ENV_PATH = os.path.join(ROOT_DIR, ".env")
+
+# Load .env file automatically
+load_dotenv(dotenv_path=ENV_PATH)
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, ExtraTreesClassifier, ExtraTreesRegressor
@@ -25,7 +33,8 @@ class SlothPredictor:
     """
 
     def __init__(self, api_token: Optional[str] = None):
-        self.api_token = api_token or os.environ.get("TABPFN_TOKEN", "")
+        load_dotenv(dotenv_path=ENV_PATH, override=True)
+        self.api_token = api_token or os.environ.get("TABPFN_TOKEN", "").strip()
         if self.api_token:
             os.environ["TABPFN_TOKEN"] = self.api_token
 

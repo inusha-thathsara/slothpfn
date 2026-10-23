@@ -102,13 +102,17 @@ Open your browser to: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
 
 ---
 
-## 🔑 Prior Labs TabPFN Authentication (Optional)
+## 🔑 Prior Labs TabPFN Authentication (Optional via `.env`)
 
 SlothPFN works immediately out of the box in **Prior Simulator Mode**. To connect live TabPFN-3.5 foundation weights:
-1. Register/log in at [ux.priorlabs.ai](https://ux.priorlabs.ai)
+1. Register or log in at [ux.priorlabs.ai](https://ux.priorlabs.ai)
 2. Accept the non-commercial license on the **Licenses** tab
 3. Copy your API key from [ux.priorlabs.ai/account](https://ux.priorlabs.ai/account)
-4. Either set `export TABPFN_TOKEN="<your-key>"` or paste it directly into the in-app **⚙️ Prior Labs Token** settings modal.
+4. Add your key to your local `.env` file (see `.env.example`):
+   ```env
+   TABPFN_TOKEN="your_api_key_here"
+   ```
+SlothPFN automatically detects the token upon startup or page reload.
 
 ---
 
