@@ -146,11 +146,30 @@
       
       <!-- Sloth Insights Callout -->
       <div class="card sloth-callout-card">
-        <div class="sloth-callout-header">
-          <div class="callout-avatar">🦥</div>
-          <div>
-            <h3 id="slothHeadline" class="callout-headline"></h3>
-            <p id="slothTimeSaved" class="callout-badge"></p>
+        <div class="sloth-callout-header flex-between">
+          <div class="flex-align-center gap-md">
+            <div class="callout-avatar">🦥</div>
+            <div>
+              <h3 id="slothHeadline" class="callout-headline"></h3>
+              <p id="slothTimeSaved" class="callout-badge"></p>
+            </div>
+          </div>
+          <div class="voice-briefing-wrapper">
+            <select id="voiceSelect" class="voice-select-dropdown" title="Select ElevenLabs Voice">
+              <option value="JBFqnCBsd6RMkjVDRZzb">George (Calm Sloth)</option>
+              <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Gentle)</option>
+              <option value="onwK4e9ZLuTAKqWW03F9">Daniel (Analyst)</option>
+              <option value="XB0fDUnXU5powFXDhCwa">Charlotte (Dynamic)</option>
+            </select>
+            <button id="btnPlayBriefing" class="btn btn-voice" title="Listen to lazy audio briefing">
+              <span class="voice-icon-pulse">🎙️</span>
+              <span id="voiceBriefingBtnText">Listen to Sloth Briefing</span>
+            </button>
+            <div class="voice-status-pill" id="voiceStatusBadge">
+              <span class="voice-status-dot"></span>
+              <span id="voiceProviderLabel">ElevenLabs Voice</span>
+            </div>
+            <audio id="briefingAudioPlayer" class="hidden"></audio>
           </div>
         </div>
         <div class="callout-body">
@@ -286,6 +305,49 @@
               </div>
             </div>
             <div id="simClassProbabilities" class="sim-classes-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sloth Voice Q&A Assistant -->
+      <div class="card voice-qa-card">
+        <div class="card-header flex-between">
+          <div class="flex-align-center gap-sm">
+            <span class="qa-header-icon">🎙️</span>
+            <div>
+              <h3 class="card-title">Ask the Sloth AI (Voice & Text)</h3>
+              <span class="card-hint">Ask about top feature drivers, baseline accuracy, or dataset takeaways</span>
+            </div>
+          </div>
+          <div class="qa-quick-chips">
+            <label class="ambient-toggle" title="Hands-free listening mode. Say 'Hey Sloth' followed by your question!">
+              <input type="checkbox" id="ambientWakeToggle">
+              <span class="ambient-toggle-slider"></span>
+              <span class="ambient-toggle-label">🎙️ "Hey Sloth" Wake</span>
+            </label>
+            <button class="qa-chip" data-q="What are the top causal drivers?">Top Drivers</button>
+            <button class="qa-chip" data-q="How does TabPFN compare to Random Forest?">Baseline Score</button>
+            <button class="qa-chip" data-q="Give me a lazy executive summary">Lazy Summary</button>
+          </div>
+        </div>
+        <div class="voice-qa-body">
+          <div class="voice-input-group">
+            <input type="text" id="voiceQuestionInput" class="voice-input" placeholder="e.g. Which feature should we prioritize to reduce churn?" />
+            <button id="btnRecordVoice" class="btn btn-secondary btn-icon-only" title="Speak your question (Speech-to-Text)">
+              <span class="mic-icon">🎤</span>
+            </button>
+            <button id="btnAskVoice" class="btn btn-primary btn-sm">
+              <span>Ask & Listen</span> 🔊
+            </button>
+          </div>
+          <div id="voiceAnswerBox" class="voice-answer-box hidden">
+            <div class="voice-answer-header">
+              <span class="sloth-mini-avatar">🦥</span>
+              <span class="voice-answer-title">Sloth Voice AI</span>
+              <span id="voiceAnswerStatus" class="voice-answer-pill">Ready</span>
+            </div>
+            <p id="voiceAnswerText" class="voice-answer-p"></p>
+            <audio id="chatAudioPlayer" class="voice-audio-element hidden" controls></audio>
           </div>
         </div>
       </div>

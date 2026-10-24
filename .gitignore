@@ -22,3 +22,15 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Antigravity Chat History & Artifacts
+chat_history/
+chathistory/
+*chat_history*
+*chathistory*
+
+# Ambient Session State & User Drop Data
+active_session.json
+drop_data/*
+!drop_data/.gitkeep
+

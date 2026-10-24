@@ -51,9 +51,22 @@ const elements = {
   simResultValue: document.getElementById('simResultValue'),
   simConfidenceText: document.getElementById('simConfidenceText'),
   simProgressBar: document.getElementById('simProgressBar'),
-  simClassProbabilities: document.getElementById('simClassProbabilities'),
   btnExportCSV: document.getElementById('btnExportCSV'),
   toastContainer: document.getElementById('toastContainer'),
+  btnPlayBriefing: document.getElementById('btnPlayBriefing'),
+  voiceBriefingBtnText: document.getElementById('voiceBriefingBtnText'),
+  voiceStatusBadge: document.getElementById('voiceStatusBadge'),
+  voiceProviderLabel: document.getElementById('voiceProviderLabel'),
+  briefingAudioPlayer: document.getElementById('briefingAudioPlayer'),
+  voiceSelect: document.getElementById('voiceSelect'),
+  btnRecordVoice: document.getElementById('btnRecordVoice'),
+  voiceQuestionInput: document.getElementById('voiceQuestionInput'),
+  btnAskVoice: document.getElementById('btnAskVoice'),
+  voiceAnswerBox: document.getElementById('voiceAnswerBox'),
+  voiceAnswerText: document.getElementById('voiceAnswerText'),
+  voiceAnswerStatus: document.getElementById('voiceAnswerStatus'),
+  chatAudioPlayer: document.getElementById('chatAudioPlayer'),
+  ambientWakeToggle: document.getElementById('ambientWakeToggle'),
 };
 
 // ==========================================
@@ -66,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initPredictionEvents();
   initSimulatorEvents();
   initExportEvents();
+  initVoiceAgent();
+  initAmbientSession();
 });
 
 // Toast notification helper
@@ -662,4 +677,430 @@ function exportPredictionsCSV() {
   a.setAttribute('download', `slothpfn_predictions_${Date.now()}.csv`);
   a.click();
   showToast('Exported predictions CSV!', '📥');
+}
+
+// ==========================================
+// ElevenLabs Voice Agent & Lazy Briefing
+// ==========================================
+let voiceState = {
+  hasElevenLabs: false,
+  isPlayingBriefing: false,
+  isPlayingChat: false,
+  ambientWakeActive: false,
+  selectedVoiceId: 'JBFqnCBsd6RMkjVDRZzb',
+};
+
+let speechRecognitionInstance = null;
+let isRecordingMic = false;
+let lastAmbientTimestamp = 0;
+
+async function initVoiceAgent() {
+  try {
+    const res = await fetch('/api/voice/status');
+    if (res.ok) {
+      const data = await res.json();
+      voiceState.hasElevenLabs = data.has_elevenlabs;
+      voiceState.selectedVoiceId = data.voice_id || 'JBFqnCBsd6RMkjVDRZzb';
+
+      if (elements.voiceProviderLabel) {
+        if (data.has_elevenlabs) {
+          elements.voiceProviderLabel.textContent = 'ElevenLabs AI Voice Active';
+          elements.voiceStatusBadge.classList.add('elevenlabs');
+        } else {
+          elements.voiceProviderLabel.textContent = 'Browser Speech Voice';
+          elements.voiceStatusBadge.classList.remove('elevenlabs');
+        }
+      }
+
+      if (elements.voiceSelect && data.voices && data.voices.length > 0) {
+        elements.voiceSelect.innerHTML = data.voices.map(v => `
+          <option value="${v.voice_id}" ${v.voice_id === data.voice_id ? 'selected' : ''}>
+            ${v.label || v.name}
+          </option>
+        `).join('');
+      }
+    }
+  } catch (e) {
+    console.warn('Voice status check failed, using browser speech fallback', e);
+  }
+
+  // Voice selector change listener
+  if (elements.voiceSelect) {
+    elements.voiceSelect.addEventListener('change', (e) => {
+      voiceState.selectedVoiceId = e.target.value;
+      showToast(`Selected voice: ${e.target.options[e.target.selectedIndex].text}`, '🎙️');
+    });
+  }
+
+  // Ambient Wake Toggle Listener
+  if (elements.ambientWakeToggle) {
+    elements.ambientWakeToggle.addEventListener('change', (e) => {
+      voiceState.ambientWakeActive = e.target.checked;
+      if (voiceState.ambientWakeActive) {
+        showToast('Ambient Wake Active! Say "Hey Sloth" anytime.', '🦥');
+        startAmbientListening();
+      } else {
+        showToast('Ambient Wake Deactivated.', '💤');
+        stopAmbientListening();
+      }
+    });
+  }
+
+  // Briefing button
+  if (elements.btnPlayBriefing) {
+    elements.btnPlayBriefing.addEventListener('click', toggleBriefingAudio);
+  }
+
+  // Audio player end listeners
+  if (elements.briefingAudioPlayer) {
+    elements.briefingAudioPlayer.addEventListener('ended', onBriefingEnded);
+    elements.briefingAudioPlayer.addEventListener('pause', () => {
+      if (!elements.briefingAudioPlayer.ended) onBriefingEnded();
+    });
+  }
+
+  // Voice Q&A ask button & enter key
+  if (elements.btnAskVoice && elements.voiceQuestionInput) {
+    elements.btnAskVoice.addEventListener('click', () => {
+      const q = elements.voiceQuestionInput.value.trim();
+      if (q) handleAskVoice(q);
+    });
+
+    elements.voiceQuestionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const q = elements.voiceQuestionInput.value.trim();
+        if (q) handleAskVoice(q);
+      }
+    });
+  }
+
+  // Quick Chips
+  document.querySelectorAll('.qa-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const q = chip.getAttribute('data-q');
+      if (elements.voiceQuestionInput) elements.voiceQuestionInput.value = q;
+      handleAskVoice(q);
+    });
+  });
+
+  // Microphone Speech-to-Text Setup
+  initSpeechRecognition();
+}
+
+function startAmbientListening() {
+  if (!speechRecognitionInstance) return;
+  if (voiceState.isPlayingBriefing || voiceState.isPlayingChat) return;
+
+  try {
+    speechRecognitionInstance.start();
+  } catch (err) {
+    // If recognition is already active, ignore InvalidStateError
+  }
+}
+
+function stopAmbientListening() {
+  if (!speechRecognitionInstance) return;
+  try {
+    speechRecognitionInstance.stop();
+  } catch (err) {}
+}
+
+function initSpeechRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    if (elements.btnRecordVoice) {
+      elements.btnRecordVoice.title = "Browser Speech Recognition not supported; type to ask.";
+      elements.btnRecordVoice.style.opacity = "0.5";
+    }
+    if (elements.ambientWakeToggle) {
+      elements.ambientWakeToggle.disabled = true;
+      elements.ambientWakeToggle.title = "Speech Recognition not supported in this browser.";
+    }
+    return;
+  }
+
+  speechRecognitionInstance = new SpeechRec();
+  speechRecognitionInstance.continuous = false; // Using auto-restart on 'end' for consistent cross-browser performance
+  speechRecognitionInstance.interimResults = false;
+  speechRecognitionInstance.lang = 'en-US';
+
+  speechRecognitionInstance.onstart = () => {
+    isRecordingMic = true;
+    if (elements.btnRecordVoice && !voiceState.ambientWakeActive) {
+      elements.btnRecordVoice.classList.add('recording');
+      elements.btnRecordVoice.title = "Listening... Speak your question";
+      showToast("Listening... Speak your question now!", "🎙️");
+    }
+  };
+
+  speechRecognitionInstance.onresult = (event) => {
+    if (!event.results || event.results.length === 0) return;
+    const transcript = event.results[0][0].transcript.trim();
+    if (!transcript) return;
+
+    if (voiceState.ambientWakeActive) {
+      const lower = transcript.toLowerCase();
+      console.log("[Sloth Ambient Mic]", lower);
+
+      const wakeTriggers = ["hey sloth", "ok sloth", "okay sloth", "hello sloth", "hi sloth", "sloth"];
+      let matchedTrigger = null;
+      for (const trigger of wakeTriggers) {
+        if (lower.startsWith(trigger) || lower.includes(trigger)) {
+          matchedTrigger = trigger;
+          break;
+        }
+      }
+
+      if (matchedTrigger) {
+        let query = "";
+        const idx = lower.indexOf(matchedTrigger);
+        query = lower.slice(idx + matchedTrigger.length).replace(/^[,:.\s]+/, '').trim();
+
+        showToast(`🦥 "Hey Sloth" heard: "${transcript}"`, '🎙️');
+
+        if (!query || query.length < 2) {
+          query = "Give me a lazy executive summary";
+        }
+
+        if (elements.voiceQuestionInput) {
+          elements.voiceQuestionInput.value = query;
+        }
+        handleAskVoice(query);
+        return;
+      }
+      // Non-wake background chatter is ignored in ambient mode
+      return;
+    }
+
+    // Manual Mic Click Mode
+    if (elements.voiceQuestionInput) {
+      elements.voiceQuestionInput.value = transcript;
+    }
+    handleAskVoice(transcript);
+  };
+
+  speechRecognitionInstance.onerror = (event) => {
+    isRecordingMic = false;
+    if (elements.btnRecordVoice) {
+      elements.btnRecordVoice.classList.remove('recording');
+      elements.btnRecordVoice.title = "Speak your question (Speech-to-Text)";
+    }
+    if (event.error !== 'no-speech' && !voiceState.ambientWakeActive) {
+      showToast("Mic note: " + event.error, "⚠️");
+    }
+  };
+
+  speechRecognitionInstance.onend = () => {
+    isRecordingMic = false;
+    if (elements.btnRecordVoice) {
+      elements.btnRecordVoice.classList.remove('recording');
+      elements.btnRecordVoice.title = "Speak your question (Speech-to-Text)";
+    }
+
+    // Auto-restart ambient listening if active and no audio playing
+    if (voiceState.ambientWakeActive && !voiceState.isPlayingBriefing && !voiceState.isPlayingChat) {
+      setTimeout(() => {
+        if (voiceState.ambientWakeActive && !voiceState.isPlayingBriefing && !voiceState.isPlayingChat) {
+          startAmbientListening();
+        }
+      }, 500);
+    }
+  };
+
+  if (elements.btnRecordVoice) {
+    elements.btnRecordVoice.addEventListener('click', () => {
+      if (!speechRecognitionInstance) {
+        showToast("Speech Recognition not supported in this browser.", "⚠️");
+        return;
+      }
+      if (isRecordingMic) {
+        speechRecognitionInstance.stop();
+      } else {
+        try {
+          speechRecognitionInstance.start();
+        } catch (e) {
+          console.warn("Recognition start warning", e);
+        }
+      }
+    });
+  }
+}
+
+function stopAllVoiceAudio() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (elements.briefingAudioPlayer) {
+    elements.briefingAudioPlayer.pause();
+    elements.briefingAudioPlayer.currentTime = 0;
+  }
+  if (elements.chatAudioPlayer) {
+    elements.chatAudioPlayer.pause();
+    elements.chatAudioPlayer.currentTime = 0;
+  }
+  onBriefingEnded();
+}
+
+function onBriefingEnded() {
+  voiceState.isPlayingBriefing = false;
+  if (elements.btnPlayBriefing) {
+    elements.btnPlayBriefing.classList.remove('playing');
+    elements.voiceBriefingBtnText.textContent = 'Listen to Sloth Briefing';
+  }
+  if (voiceState.ambientWakeActive) {
+    setTimeout(startAmbientListening, 600);
+  }
+}
+
+async function toggleBriefingAudio() {
+  if (voiceState.isPlayingBriefing) {
+    stopAllVoiceAudio();
+    return;
+  }
+
+  if (!state.predictionResult) {
+    showToast('Run a prediction first to generate a briefing!', '🦥');
+    return;
+  }
+
+  stopAmbientListening();
+
+  try {
+    elements.btnPlayBriefing.classList.add('playing');
+    elements.voiceBriefingBtnText.textContent = 'Synthesizing Briefing...';
+    stopAllVoiceAudio();
+
+    const selectedVoice = elements.voiceSelect ? elements.voiceSelect.value : voiceState.selectedVoiceId;
+
+    if (voiceState.hasElevenLabs) {
+      // Use live streaming audio for instantaneous playback
+      const streamUrl = `/api/voice/stream?voice_id=${encodeURIComponent(selectedVoice)}`;
+      voiceState.isPlayingBriefing = true;
+      elements.voiceBriefingBtnText.textContent = 'Pause Briefing';
+      elements.briefingAudioPlayer.src = streamUrl;
+      await elements.briefingAudioPlayer.play();
+    } else {
+      const res = await fetch('/api/voice/narrate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: '', voice_id: selectedVoice })
+      });
+
+      if (!res.ok) throw new Error('Briefing synthesis request failed');
+      const data = await res.json();
+
+      voiceState.isPlayingBriefing = true;
+      elements.voiceBriefingBtnText.textContent = 'Speaking (Browser Voice)...';
+      speakWithBrowser(data.text, onBriefingEnded);
+    }
+  } catch (err) {
+    console.error('Briefing error:', err);
+    showToast('Failed to play briefing audio: ' + err.message, '⚠️');
+    onBriefingEnded();
+  }
+}
+
+async function handleAskVoice(question) {
+  if (!question) return;
+
+  stopAllVoiceAudio();
+  stopAmbientListening();
+  voiceState.isPlayingChat = true;
+
+  if (elements.voiceAnswerBox) elements.voiceAnswerBox.classList.remove('hidden');
+  if (elements.voiceAnswerText) elements.voiceAnswerText.textContent = 'Consulting the sloth brain...';
+  if (elements.voiceAnswerStatus) elements.voiceAnswerStatus.textContent = 'Thinking...';
+  if (elements.btnAskVoice) elements.btnAskVoice.disabled = true;
+
+  try {
+    const selectedVoice = elements.voiceSelect ? elements.voiceSelect.value : voiceState.selectedVoiceId;
+    const res = await fetch('/api/voice/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: question, voice_id: selectedVoice })
+    });
+
+    if (!res.ok) throw new Error('Voice query failed');
+    const data = await res.json();
+
+    if (elements.voiceAnswerText) elements.voiceAnswerText.textContent = data.answer;
+
+    if (data.has_audio && data.audio_data) {
+      if (elements.voiceAnswerStatus) elements.voiceAnswerStatus.textContent = 'Playing ElevenLabs Audio';
+      elements.chatAudioPlayer.classList.remove('hidden');
+      elements.chatAudioPlayer.src = data.audio_data;
+      await elements.chatAudioPlayer.play();
+      elements.chatAudioPlayer.onended = () => {
+        voiceState.isPlayingChat = false;
+        if (elements.voiceAnswerStatus) elements.voiceAnswerStatus.textContent = 'Finished';
+        if (voiceState.ambientWakeActive) setTimeout(startAmbientListening, 600);
+      };
+    } else {
+      if (elements.voiceAnswerStatus) elements.voiceAnswerStatus.textContent = 'Playing Browser Audio';
+      elements.chatAudioPlayer.classList.add('hidden');
+      speakWithBrowser(data.answer, () => {
+        voiceState.isPlayingChat = false;
+        if (elements.voiceAnswerStatus) elements.voiceAnswerStatus.textContent = 'Finished';
+        if (voiceState.ambientWakeActive) setTimeout(startAmbientListening, 600);
+      });
+    }
+  } catch (err) {
+    console.error('Ask voice error:', err);
+    voiceState.isPlayingChat = false;
+    if (elements.voiceAnswerText) elements.voiceAnswerText.textContent = 'Sorry, could not answer right now: ' + err.message;
+    if (elements.voiceAnswerStatus) elements.voiceAnswerStatus.textContent = 'Error';
+    if (voiceState.ambientWakeActive) setTimeout(startAmbientListening, 600);
+  } finally {
+    if (elements.btnAskVoice) elements.btnAskVoice.disabled = false;
+  }
+}
+
+function speakWithBrowser(text, onEndCallback) {
+  if (!window.speechSynthesis) {
+    if (onEndCallback) onEndCallback();
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/[*_#`🦥⚡🌿]/g, '').trim();
+  const utterance = new SpeechSynthesisUtterance(clean);
+  utterance.rate = 0.95;
+  utterance.pitch = 0.95;
+  utterance.onend = () => {
+    if (onEndCallback) onEndCallback();
+  };
+  utterance.onerror = () => {
+    if (onEndCallback) onEndCallback();
+  };
+  window.speechSynthesis.speak(utterance);
+}
+
+// ==========================================
+// Ambient Session Sync (Folder Watcher / Right Click)
+// ==========================================
+function initAmbientSession() {
+  checkAmbientSession();
+  window.addEventListener('focus', checkAmbientSession);
+  setInterval(checkAmbientSession, 5000);
+}
+
+async function checkAmbientSession() {
+  try {
+    const res = await fetch('/api/ambient/session');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.has_ambient_session && data.session && data.session.result) {
+      const s = data.session;
+      if (s.timestamp && s.timestamp > lastAmbientTimestamp) {
+        lastAmbientTimestamp = s.timestamp;
+        state.predictionResult = s.result;
+        renderResults(s.result);
+        if (elements.metaFilename) elements.metaFilename.textContent = s.filename || 'Ambient Dataset';
+        if (elements.metaRows) elements.metaRows.textContent = `${s.row_count || (s.result.training_samples + s.result.test_samples)} rows`;
+        if (elements.metaCols) elements.metaCols.textContent = `${s.result.feature_count} features`;
+        if (elements.metaTask) elements.metaTask.textContent = s.task_type || s.result.task_type;
+        if (elements.datasetDetailsBar) elements.datasetDetailsBar.classList.remove('hidden');
+        showToast(`🦥 Ambient data loaded: ${s.filename}`, '⚡');
+      }
+    }
+  } catch (err) {
+    // Non-blocking sync check
+  }
 }

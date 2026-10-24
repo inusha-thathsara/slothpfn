@@ -83,3 +83,8 @@ tzdata==2026.5
 urllib3==2.8.0
 uvicorn==0.54.0
 xxhash==3.8.1
+elevenlabs>=2.74.1
+websockets>=13.0
+watchdog>=6.0.0
+pystray>=0.19.5
+plyer>=2.1.0
