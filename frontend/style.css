@@ -1581,7 +1581,7 @@ button.lazy-preset-btn:active,
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Simulator Controls Grid */
+/* Simulator Controls Grid & Custom Amber Scrollbar */
 .simulator-controls-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
@@ -1589,7 +1589,57 @@ button.lazy-preset-btn:active,
   max-height: 420px !important;
   overflow-y: auto !important;
   padding-right: 8px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(245, 158, 11, 0.45) rgba(15, 23, 42, 0.6) !important;
 }
+
+.simulator-controls-grid::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.simulator-controls-grid::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-radius: 9999px !important;
+}
+
+.simulator-controls-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d97706, #f59e0b) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4) !important;
+}
+
+.simulator-controls-grid::-webkit-scrollbar-thumb:hover {
+  background: #fbbf24 !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.7) !important;
+}
+
+/* Global Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.45) rgba(15, 23, 42, 0.6);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d97706, #f59e0b);
+  border-radius: 9999px;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #fbbf24;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+}
+
 
 /* Slider Card Container */
 .sim-control-item {

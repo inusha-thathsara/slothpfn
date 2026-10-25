@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css?v=20261025-voicefix2">
+  <link rel="stylesheet" href="/static/style.css?v=20261025-scrollbar2">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style id="sloth-lazy-simulator-theme">
@@ -141,7 +141,7 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
     }
 
-    /* Simulator Controls Layout */
+    /* Simulator Controls Layout & Custom Slim Amber Scrollbar */
     .simulator-controls-grid {
       display: grid !important;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
@@ -149,7 +149,57 @@
       max-height: 400px !important;
       overflow-y: auto !important;
       padding-right: 8px !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(245, 158, 11, 0.45) rgba(15, 23, 42, 0.6) !important;
     }
+
+    .simulator-controls-grid::-webkit-scrollbar {
+      width: 6px !important;
+    }
+
+    .simulator-controls-grid::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6) !important;
+      border-radius: 9999px !important;
+    }
+
+    .simulator-controls-grid::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #d97706, #f59e0b) !important;
+      border-radius: 9999px !important;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.4) !important;
+    }
+
+    .simulator-controls-grid::-webkit-scrollbar-thumb:hover {
+      background: #fbbf24 !important;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7) !important;
+    }
+
+    /* Global Scrollbars */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(245, 158, 11, 0.45) rgba(15, 23, 42, 0.6);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #d97706, #f59e0b);
+      border-radius: 9999px;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #fbbf24;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.8);
+    }
+
 
     /* Slider Container Item */
     .sim-control-item {
