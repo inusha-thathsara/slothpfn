@@ -3,9 +3,9 @@ services:
     build: .
     container_name: slothpfn-app
     ports:
-      - "8000:8000"
+      - "7860:7860"
     environment:
-      - PORT=8000
+      - PORT=7860
       - HOST=0.0.0.0
       - TABPFN_TOKEN=${TABPFN_TOKEN:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
@@ -13,7 +13,7 @@ services:
       - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-JBFqnCBsd6RMkjVDRZzb}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:7860/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

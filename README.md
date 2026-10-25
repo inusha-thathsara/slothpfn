@@ -1,3 +1,14 @@
+---
+title: SlothPFN Zero Effort Tabular AI
+emoji: 🦥
+colorFrom: yellow
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # 🦥 SlothPFN: Zero-Effort Tabular AI Agent with TabPFN
 
 [![Hacktoberfest 2026](https://img.shields.io/badge/Hacktoberfest-Week%203%20Challenge-orange?style=for-the-badge&logo=hacktoberfest)](https://dev.to/challenges/hacktoberfest-week3-2026-10-19)

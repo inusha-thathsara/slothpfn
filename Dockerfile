@@ -1,6 +1,6 @@
 # ==========================================================
 # SlothPFN - Zero-Effort Tabular AI Agent
-# Production Multi-Platform Dockerfile
+# Production & Hugging Face Spaces Dockerfile
 # ==========================================================
 FROM python:3.11-slim
 
@@ -8,9 +8,7 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     HOST=0.0.0.0 \
-    PORT=8000
-
-WORKDIR /app
+    PORT=7860
 
 # Install minimal OS dependencies required for PyTorch, LightGBM, and audio processing
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -19,25 +17,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements specification first to leverage Docker layer caching
-COPY requirements.txt .
+# Hugging Face Spaces runs as a non-root user with UID 1000
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Install Python dependencies
+WORKDIR $HOME/app
+
+# Copy requirements specification first to leverage Docker layer caching
+COPY --chown=user requirements.txt .
+
+# Install Python dependencies into user's environment
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application directories and files
-COPY backend/ ./backend/
-COPY frontend/ ./frontend/
-COPY sample_data/ ./sample_data/
-COPY drop_data/ ./drop_data/
+COPY --chown=user backend/ ./backend/
+COPY --chown=user frontend/ ./frontend/
+COPY --chown=user sample_data/ ./sample_data/
+COPY --chown=user drop_data/ ./drop_data/
 
 # Expose default application port
-EXPOSE 8000
+EXPOSE 7860
 
 # Health check to ensure FastAPI container is alive and responsive
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD curl -f http://localhost:${PORT}/api/health || exit 1
 
 # Start Uvicorn server in production mode
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-7860} --workers 1"]
