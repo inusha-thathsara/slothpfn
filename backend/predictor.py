@@ -392,6 +392,9 @@ class SlothPredictor:
             metrics=metrics,
             top_features=feature_importance_list[:3],
             n_rows=len(df),
+            n_features=n_features,
+            n_cats=len(meta.get("encoders", {})),
+            has_missing=bool(df.isnull().values.any()),
             tabpfn_time=tabpfn_time
         )
 
@@ -412,6 +415,54 @@ class SlothPredictor:
             "model_ready": True
         }
 
+    def calculate_time_saved(
+        self,
+        n_rows: int,
+        n_features: int,
+        n_cats: int = 0,
+        has_missing: bool = False,
+        task_type: str = "classification"
+    ) -> str:
+        """
+        Dynamically calculates estimated human data science time saved based on:
+        - Baseline EDA and data sanity check: 10 mins
+        - Feature inspection & scaling: ~2 mins per feature
+        - Categorical encoding pipelines: ~4 mins per categorical feature
+        - Missing value imputation & NaN strategy: +12 mins if NaNs present
+        - Cross-validation & hyperparameter tuning search (Optuna/GridSearch):
+            * < 200 rows: +10 mins
+            * 200 - 1000 rows: +20 mins
+            * > 1000 rows: +35 mins
+        - Task-specific evaluation (residual diagnostics or confusion/threshold tuning): +10 mins
+        """
+        total_mins = 10
+        total_mins += n_features * 2
+        total_mins += n_cats * 4
+        if has_missing:
+            total_mins += 12
+
+        if n_rows < 200:
+            total_mins += 10
+        elif n_rows <= 1000:
+            total_mins += 20
+        else:
+            total_mins += 35
+
+        total_mins += 10  # validation/tuning time
+
+        # Round to nearest 5 minutes
+        rounded_mins = int(round(total_mins / 5.0) * 5)
+        rounded_mins = max(15, rounded_mins)
+
+        if rounded_mins >= 60:
+            hours = rounded_mins // 60
+            mins = rounded_mins % 60
+            if mins == 0:
+                return f"Saved ~{hours} hr" if hours == 1 else f"Saved ~{hours} hrs"
+            return f"Saved ~{hours}h {mins}m"
+        else:
+            return f"Saved ~{rounded_mins} mins"
+
     def generate_sloth_insights(
         self,
         task_type: str,
@@ -419,7 +470,10 @@ class SlothPredictor:
         metrics: Dict[str, Any],
         top_features: List[Dict[str, Any]],
         n_rows: int,
-        tabpfn_time: float
+        tabpfn_time: float,
+        n_features: int = 4,
+        n_cats: int = 0,
+        has_missing: bool = False
     ) -> Dict[str, Any]:
         """
         Translates raw tabular statistics into clear, actionable, sloth-themed natural language summaries.
@@ -441,13 +495,20 @@ class SlothPredictor:
             key_drivers = f"Drivers: {top_feat_str}"
 
         lazy_verdict = "🦥 Done. Model calibrated. Go take a nap."
+        time_saved = self.calculate_time_saved(
+            n_rows=n_rows,
+            n_features=n_features,
+            n_cats=n_cats,
+            has_missing=has_missing,
+            task_type=task_type
+        )
 
         return {
             "headline": headline,
             "summary": summary,
             "key_drivers": key_drivers,
             "lazy_verdict": lazy_verdict,
-            "time_saved_estimate": "Saved ~45 mins"
+            "time_saved_estimate": time_saved
         }
 
     def simulate_scenario(
