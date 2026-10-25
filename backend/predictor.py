@@ -425,7 +425,7 @@ class SlothPredictor:
         Translates raw tabular statistics into clear, actionable, sloth-themed natural language summaries.
         """
         top_feat_names = [f["feature"] for f in top_features]
-        top_feat_str = ", ".join(f"**{name}** ({f['percentage']}%)" for name, f in zip(top_feat_names, top_features))
+        top_feat_str = ", ".join(f"<strong>{name}</strong> ({f['percentage']}%)" for name, f in zip(top_feat_names, top_features))
 
         if task_type == "classification":
             acc = metrics["tabpfn"]["accuracy"]

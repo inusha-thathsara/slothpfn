@@ -332,17 +332,23 @@ async function runPrediction() {
   }
 }
 
+function formatInsightText(text) {
+  if (!text) return '';
+  return text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
 // Render Results View
 function renderResults(result) {
   elements.resultsSection.classList.remove('hidden');
 
   // 1. Sloth Insights Callout
   const insights = result.sloth_insights;
-  elements.slothHeadline.textContent = insights.headline;
+  elements.slothHeadline.innerHTML = formatInsightText(insights.headline);
   elements.slothTimeSaved.textContent = insights.time_saved_estimate;
-  elements.slothSummary.textContent = insights.summary;
-  elements.slothDrivers.innerHTML = insights.key_drivers;
-  elements.slothVerdict.innerHTML = insights.lazy_verdict;
+  elements.slothSummary.innerHTML = formatInsightText(insights.summary);
+  elements.slothDrivers.innerHTML = formatInsightText(insights.key_drivers);
+  elements.slothVerdict.innerHTML = formatInsightText(insights.lazy_verdict);
+
 
   // 2. Metrics & Comparison
   const isClf = result.task_type === 'classification';
@@ -1061,30 +1067,38 @@ async function toggleBriefingAudio() {
   stopAmbientListening();
 
   try {
+    voiceState.isPlayingBriefing = true;
     elements.btnPlayBriefing.classList.add('playing');
     elements.voiceBriefingBtnText.textContent = 'Synthesizing Briefing...';
     stopAllVoiceAudio();
 
     const selectedVoice = elements.voiceSelect ? elements.voiceSelect.value : voiceState.selectedVoiceId;
 
-    if (voiceState.hasElevenLabs) {
-      // Use live streaming audio for instantaneous playback
-      const streamUrl = `/api/voice/stream?voice_id=${encodeURIComponent(selectedVoice)}`;
-      voiceState.isPlayingBriefing = true;
+    // Use /api/voice/narrate which returns complete base64 MP3 for instant cross-browser playback
+    const res = await fetch('/api/voice/narrate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: '',
+        voice_id: selectedVoice,
+        result: state.predictionResult
+      })
+    });
+
+    if (!res.ok) throw new Error('Briefing synthesis request failed');
+    const data = await res.json();
+
+    if (!voiceState.isPlayingBriefing) {
+      // User paused while request was in-flight
+      return;
+    }
+
+    if (data.has_audio && data.audio_data) {
       elements.voiceBriefingBtnText.textContent = 'Pause Briefing';
-      elements.briefingAudioPlayer.src = streamUrl;
+      elements.briefingAudioPlayer.src = data.audio_data;
       await elements.briefingAudioPlayer.play();
+      elements.briefingAudioPlayer.onended = onBriefingEnded;
     } else {
-      const res = await fetch('/api/voice/narrate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: '', voice_id: selectedVoice })
-      });
-
-      if (!res.ok) throw new Error('Briefing synthesis request failed');
-      const data = await res.json();
-
-      voiceState.isPlayingBriefing = true;
       elements.voiceBriefingBtnText.textContent = 'Speaking (Browser Voice)...';
       speakWithBrowser(data.text, onBriefingEnded);
     }
@@ -1094,6 +1108,7 @@ async function toggleBriefingAudio() {
     onBriefingEnded();
   }
 }
+
 
 async function handleAskVoice(question) {
   if (!question) return;

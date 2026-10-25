@@ -267,13 +267,15 @@ async def narrate_text(payload: Dict[str, Any] = Body(...)):
     text = payload.get("text", "").strip()
     voice_id = payload.get("voice_id")
     if not text:
-        if SESSION_STATE["last_result"]:
+        pred_res = SESSION_STATE["last_result"] or payload.get("result")
+        if pred_res:
             text = voice_agent_instance.generate_audio_explanation(
-                SESSION_STATE["last_result"],
+                pred_res,
                 SESSION_STATE.get("df")
             )
         else:
-            raise HTTPException(status_code=400, detail="No text provided to narrate.")
+            raise HTTPException(status_code=400, detail="No active prediction or text provided to narrate.")
+
 
     audio_bytes = await voice_agent_instance.generate_speech(text, voice_id=voice_id)
     if audio_bytes:
