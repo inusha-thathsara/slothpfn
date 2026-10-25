@@ -1,0 +1,15 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+chat_history
+tests
+scripts
+docs/DEV_ARTICLE_SUBMISSION.md
+*.log
+.coverage
+.pytest_cache
