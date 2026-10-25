@@ -7,6 +7,8 @@
 > **"Channel your inner sloth. Build something that does the work so you don't have to."**  
 > *Submitted for the [Hacktoberfest Open-Source AI Challenge Week 3: Slow and Steady](https://dev.to/challenges/hacktoberfest-week3-2026-10-19) & the **Best Use of TabPFN** Partner Track.*
 
+![SlothPFN Hero Banner](https://raw.githubusercontent.com/inusha-thathsara/slothpfn/main/docs/images/sloth_hero_banner.png)
+
 ---
 
 ## 🌟 Executive Summary
@@ -48,16 +50,20 @@ In less than 2 seconds, SlothPFN's pre-trained Bayesian transformer infers colum
    - **Interactive Conversational Tabular Q&A**: Ask questions about feature importance, baseline accuracy, or dataset takeaways.
    - **🎤 Hands-Free Microphone Input (Speech-to-Text)**: Speak your questions directly to the agent using the integrated microphone button or ambient "Hey Sloth" voice detection.
    - **🎭 Multi-Voice Persona Selector**: Easily switch narrator voices on the fly:
-     - *George (Calm Sloth Narrator)* — Warm, relaxed British narrator.
-     - *Sarah (Gentle & Conversational)* — Friendly, clear tone.
-     - *Daniel (Executive Analyst)* — Authoritative, professional delivery.
-     - *Charlotte (Dynamic Storyteller)* — Expressive and bright.
+     - *George (Calm)* — Warm, relaxed British narrator.
+     - *Sarah (Gentle)* — Friendly, conversational tone.
+     - *Daniel (Analyst)* — Authoritative, professional delivery.
+     - *Charlotte (Dynamic)* — Expressive and bright.
    - **Dual-Engine Graceful Fallback**: Automatically switches to the browser's native Web Speech API (`window.speechSynthesis`) if no API key is supplied, guaranteeing a working experience for everyone.
 7. **Interactive What-If Scenario Simulator**:
    - Real-time sliders and selectors for all feature attributes.
    - Instant live posterior recalculation with probability distribution meters.
-8. **One-Click DEV Submission Generator**:
-   - Generates pre-filled markdown conforming to the official Hacktoberfest Week 3 template with Liquid tags.
+8. **Minimalist, Text-Clutter-Free UI**:
+   - Built specifically for lazy builders who hate walls of text. Clean glassmorphic design system with punchy, actionable metrics.
+9. **Comprehensive 11-Test Audit Suite**:
+   - Automated test coverage across FastAPI endpoints, TabPFN inference, scenario simulation, and ElevenLabs audio streaming (`tests/test_audit_suite.py`).
+
+📖 **Looking for a full step-by-step walkthrough? Check out the [User Guide](docs/USER_GUIDE.md)!**
 
 ---
 
@@ -69,7 +75,7 @@ In less than 2 seconds, SlothPFN's pre-trained Bayesian transformer infers colum
 
 ### 2. Clone & Setup Virtual Environment
 ```bash
-git clone https://github.com/your-username/slothpfn.git
+git clone https://github.com/inusha-thathsara/slothpfn.git
 cd slothpfn
 
 # Create and activate virtual environment

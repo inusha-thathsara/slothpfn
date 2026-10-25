@@ -35,4 +35,4 @@ drop_data/*
 !drop_data/.gitkeep
 
 # DEV.to Article Submissions & Drafts
-docs/*.md
+docs/DEV_ARTICLE_SUBMISSION.md
