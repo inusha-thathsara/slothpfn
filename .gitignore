@@ -36,3 +36,8 @@ drop_data/*
 
 # DEV.to Article Submissions & Drafts
 docs/DEV_ARTICLE_SUBMISSION.md
+
+# Binaries
+tools/cloudflared.exe
+*.exe
+
