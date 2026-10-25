@@ -365,8 +365,15 @@ class SlothPredictor:
             actual = y_test[i]
             predicted = tabpfn_preds[i]
 
-            actual_label = meta["target_classes"][int(actual)] if meta["target_classes"] else actual
-            pred_label = meta["target_classes"][int(predicted)] if meta["target_classes"] else predicted
+            if meta["target_classes"]:
+                actual_label = str(meta["target_classes"][int(actual)])
+                pred_label = str(meta["target_classes"][int(predicted)])
+            elif task_type == "classification":
+                actual_label = str(actual.item() if hasattr(actual, "item") else actual)
+                pred_label = str(predicted.item() if hasattr(predicted, "item") else predicted)
+            else:
+                actual_label = round(float(actual), 4)
+                pred_label = round(float(predicted), 4)
 
             item = {
                 "row_index": int(i + 1),

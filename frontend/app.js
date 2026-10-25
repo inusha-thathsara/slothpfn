@@ -439,8 +439,7 @@ function renderSecondaryChart(result) {
   const ctx = document.getElementById('secondaryChart').getContext('2d');
 
   if (isClf) {
-    elements.secondaryChartTitle.textContent = 'Confusion Matrix Breakdown';
-    elements.secondaryChartHint.textContent = 'Ground truth distribution across predicted classes';
+    if (elements.secondaryChartTitle) elements.secondaryChartTitle.textContent = 'Confusion Matrix Breakdown';
 
     const cm = result.metrics.confusion_matrix;
     const labels = cm.labels;
@@ -478,8 +477,7 @@ function renderSecondaryChart(result) {
       }
     });
   } else {
-    elements.secondaryChartTitle.textContent = 'Regression Error Distribution';
-    elements.secondaryChartHint.textContent = 'Absolute error residuals on test set';
+    if (elements.secondaryChartTitle) elements.secondaryChartTitle.textContent = 'Regression Error Distribution';
 
     const samplePreds = result.sample_predictions;
     const labels = samplePreds.map(p => `#${p.row_index}`);
