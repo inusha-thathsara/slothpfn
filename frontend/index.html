@@ -43,29 +43,23 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-tag">
-        <span class="sloth-leaf">🌿</span> Zero-Shot Tabular Foundation Model • Instant Bayesian Predictions
+        <span class="sloth-leaf">🌿</span> TabPFN Foundation AI
       </div>
       <h1 class="hero-title">
-        The Tabular AI Agent for <span class="gradient-text">Unapologetically Lazy</span> Builders.
+        Zero Effort. <span class="gradient-text">Instant AI.</span>
       </h1>
       <p class="hero-description">
-        No feature engineering. No hyperparameter grid search. No overfitting panic.
-        Drop any CSV and let <strong>Prior Labs' TabPFN</strong> foundation model compute instant Bayesian predictions in a single forward pass.
+        Drop a CSV. Get instant TabPFN predictions. Do nothing else. 🦥
       </p>
     </section>
 
     <!-- Quick Samples Banner -->
     <section class="samples-section card">
       <div class="section-header">
-        <div>
-          <h2 class="section-title">Too lazy to find a dataset? Try one-click samples:</h2>
-          <p class="section-subtitle">Pre-loaded realistic datasets for instant testing</p>
-        </div>
-        <span class="pill-tag">Instant 1-Click Load</span>
+        <h2 class="section-title">1-Click Datasets</h2>
       </div>
       <div id="samplesList" class="samples-grid">
-        <!-- Dynamically injected sample buttons -->
-        <div class="loading-placeholder">Loading sample datasets...</div>
+        <div class="loading-placeholder">Loading...</div>
       </div>
     </section>
 
@@ -75,32 +69,27 @@
         <input type="file" id="fileInput" accept=".csv,.tsv,.txt" class="file-input-hidden">
         <div class="dropzone-content">
           <div class="dropzone-icon">📁</div>
-          <h3 class="dropzone-title">Drag & drop your CSV here</h3>
-          <p class="dropzone-subtitle">or click to browse from your computer (auto-cleans categoricals & missing values)</p>
-          <div class="dropzone-tags">
-            <span>Supports .csv</span>
-            <span>Supports .tsv</span>
-            <span>Zero Data Stored</span>
-          </div>
+          <h3 class="dropzone-title">Drop CSV Here</h3>
+          <p class="dropzone-subtitle">or click to browse</p>
         </div>
       </div>
 
       <!-- Dataset Preview Bar (Hidden initially) -->
       <div id="datasetDetailsBar" class="dataset-details-bar hidden">
         <div class="dataset-meta-item">
-          <span class="meta-label">Active File:</span>
+          <span class="meta-label">File:</span>
           <span id="metaFilename" class="meta-value bold highlight"></span>
         </div>
         <div class="dataset-meta-item">
-          <span class="meta-label">Total Rows:</span>
+          <span class="meta-label">Rows:</span>
           <span id="metaRows" class="meta-value"></span>
         </div>
         <div class="dataset-meta-item">
-          <span class="meta-label">Columns:</span>
+          <span class="meta-label">Cols:</span>
           <span id="metaCols" class="meta-value"></span>
         </div>
         <div class="dataset-meta-item">
-          <span class="meta-label">Auto-Detected Task:</span>
+          <span class="meta-label">Task:</span>
           <span id="metaTask" class="meta-value badge-task"></span>
         </div>
       </div>
@@ -110,25 +99,23 @@
     <section id="configBar" class="config-bar card hidden">
       <div class="config-grid">
         <div class="config-item">
-          <label for="targetColSelect" class="config-label">
-            Target Column to Predict <span class="badge-auto">Auto-Inferred</span>
-          </label>
+          <label for="targetColSelect" class="config-label">Target</label>
           <select id="targetColSelect" class="config-select">
             <!-- Injected options -->
           </select>
         </div>
 
         <div class="config-item">
-          <label for="taskTypeSelect" class="config-label">Task Type</label>
+          <label for="taskTypeSelect" class="config-label">Task</label>
           <select id="taskTypeSelect" class="config-select">
-            <option value="classification">Classification (Categories / Discrete)</option>
-            <option value="regression">Regression (Continuous Numerical)</option>
+            <option value="classification">Classification</option>
+            <option value="regression">Regression</option>
           </select>
         </div>
 
         <div class="config-item action-item">
           <button id="btnRunPrediction" class="btn btn-primary btn-large">
-            <span class="btn-icon">⚡</span> Run Lazy AI Prediction
+            <span class="btn-icon">⚡</span> Predict
           </button>
         </div>
       </div>
@@ -137,8 +124,7 @@
     <!-- Loading State -->
     <div id="predictionSpinner" class="prediction-spinner card hidden">
       <div class="sloth-loader">🦥</div>
-      <h3 class="loader-title">The Sloth is thinking so you don't have to...</h3>
-      <p class="loader-subtitle">Passing tabular tokens through TabPFN's pre-trained causal Bayesian prior...</p>
+      <h3 class="loader-title">Predicting... 🦥</h3>
     </div>
 
     <!-- Results Section (Hidden until prediction runs) -->
@@ -155,19 +141,19 @@
             </div>
           </div>
           <div class="voice-briefing-wrapper">
-            <select id="voiceSelect" class="voice-select-dropdown" title="Select ElevenLabs Voice">
-              <option value="JBFqnCBsd6RMkjVDRZzb">George (Calm Sloth)</option>
+            <select id="voiceSelect" class="voice-select-dropdown" title="Select Voice">
+              <option value="JBFqnCBsd6RMkjVDRZzb">George (Calm)</option>
               <option value="EXAVITQu4vr4xnSDxMaL">Sarah (Gentle)</option>
               <option value="onwK4e9ZLuTAKqWW03F9">Daniel (Analyst)</option>
               <option value="XB0fDUnXU5powFXDhCwa">Charlotte (Dynamic)</option>
             </select>
-            <button id="btnPlayBriefing" class="btn btn-voice" title="Listen to lazy audio briefing">
+            <button id="btnPlayBriefing" class="btn btn-voice" title="Listen">
               <span class="voice-icon-pulse">🎙️</span>
-              <span id="voiceBriefingBtnText">Listen to Sloth Briefing</span>
+              <span id="voiceBriefingBtnText">Listen</span>
             </button>
             <div class="voice-status-pill" id="voiceStatusBadge">
               <span class="voice-status-dot"></span>
-              <span id="voiceProviderLabel">ElevenLabs Voice</span>
+              <span id="voiceProviderLabel">ElevenLabs</span>
             </div>
             <audio id="briefingAudioPlayer" class="hidden"></audio>
           </div>
@@ -185,7 +171,7 @@
         <div class="card metric-card model-tabpfn">
           <div class="metric-header">
             <div class="model-badge">
-              <span class="model-dot"></span> TabPFN Foundation AI
+              <span class="model-dot"></span> TabPFN
             </div>
             <span class="speed-pill" id="tabpfnSpeed"></span>
           </div>
@@ -193,13 +179,13 @@
             <div class="metric-score" id="tabpfnScore">--</div>
             <div class="metric-score-label" id="tabpfnScoreLabel">Accuracy</div>
           </div>
-          <p class="metric-footnote">Instant prior-fitted transformer • Zero tuning loops</p>
+          <p class="metric-footnote">Bayesian Prior</p>
         </div>
 
         <div class="card metric-card model-baseline">
           <div class="metric-header">
             <div class="model-badge baseline-badge">
-              <span class="model-dot-neutral"></span> Traditional Random Forest
+              <span class="model-dot-neutral"></span> Baseline
             </div>
             <span class="speed-pill pill-neutral" id="baselineSpeed"></span>
           </div>
@@ -207,19 +193,19 @@
             <div class="metric-score" id="baselineScore">--</div>
             <div class="metric-score-label" id="baselineScoreLabel">Accuracy</div>
           </div>
-          <p class="metric-footnote">Manual tree fitting baseline</p>
+          <p class="metric-footnote">Random Forest</p>
         </div>
 
         <div class="card metric-card model-diff">
           <div class="metric-header">
-            <span class="diff-title">Lazy Advantage</span>
-            <span class="win-pill">Prior Labs TabPFN</span>
+            <span class="diff-title">Advantage</span>
+            <span class="win-pill">TabPFN</span>
           </div>
           <div class="metric-main">
             <div class="metric-score highlight-green" id="speedupFactor">--</div>
-            <div class="metric-score-label">Faster Setup & Evaluation</div>
+            <div class="metric-score-label">Gain</div>
           </div>
-          <p class="metric-footnote">Zero manual feature scaling or iterative grid loops required</p>
+          <p class="metric-footnote">Zero tuning</p>
         </div>
       </div>
 
@@ -227,8 +213,7 @@
       <div class="charts-grid">
         <div class="card chart-card">
           <div class="card-header">
-            <h3 class="card-title">Key Feature Drivers (Causal Importance)</h3>
-            <span class="card-hint">Which factors mattered most</span>
+            <h3 class="card-title">Feature Drivers</h3>
           </div>
           <div class="chart-wrapper">
             <canvas id="featureImportanceChart"></canvas>
@@ -238,7 +223,6 @@
         <div class="card chart-card">
           <div class="card-header">
             <h3 class="card-title" id="secondaryChartTitle">Prediction Matrix</h3>
-            <span class="card-hint" id="secondaryChartHint">Model accuracy distribution</span>
           </div>
           <div class="chart-wrapper" id="secondaryChartWrapper">
             <canvas id="secondaryChart"></canvas>
@@ -249,12 +233,9 @@
       <!-- Live Predictions Sample Table -->
       <div class="card table-card">
         <div class="card-header flex-between">
-          <div>
-            <h3 class="card-title">Sample Test Set Predictions</h3>
-            <span class="card-hint">Ground Truth vs TabPFN Zero-Shot Prediction with Confidence</span>
-          </div>
+          <h3 class="card-title">Predictions</h3>
           <button id="btnExportCSV" class="btn btn-secondary btn-sm">
-            📥 Export Predictions CSV
+            📥 Export CSV
           </button>
         </div>
         <div class="table-container">
@@ -262,9 +243,9 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Actual Value</th>
-                <th>TabPFN Prediction</th>
-                <th>Confidence / Error</th>
+                <th>Actual</th>
+                <th>Prediction</th>
+                <th>Confidence</th>
                 <th>Result</th>
               </tr>
             </thead>
@@ -278,10 +259,7 @@
       <!-- Interactive What-If Scenario Simulator -->
       <div class="card simulator-card">
         <div class="card-header flex-between">
-          <div>
-            <h3 class="card-title">🎛️ Interactive "What-If" Scenario Simulator</h3>
-            <span class="card-hint">Tweak any feature value and watch TabPFN recalculate probabilities in real time</span>
-          </div>
+          <h3 class="card-title">🎛️ What-If Simulator</h3>
           <button id="btnSimulate" class="btn btn-primary btn-sm">
             ⚡ Recalculate
           </button>
@@ -293,7 +271,7 @@
           </div>
 
           <div class="simulator-result-box">
-            <span class="sim-label">Predicted Outcome</span>
+            <span class="sim-label">Prediction</span>
             <div id="simResultValue" class="sim-value">--</div>
             <div id="simConfidenceBarContainer" class="sim-conf-container">
               <div class="sim-conf-header">
@@ -314,36 +292,33 @@
         <div class="card-header flex-between">
           <div class="flex-align-center gap-sm">
             <span class="qa-header-icon">🎙️</span>
-            <div>
-              <h3 class="card-title">Ask the Sloth AI (Voice & Text)</h3>
-              <span class="card-hint">Ask about top feature drivers, baseline accuracy, or dataset takeaways</span>
-            </div>
+            <h3 class="card-title">Ask Sloth AI</h3>
           </div>
           <div class="qa-quick-chips">
-            <label class="ambient-toggle" title="Hands-free listening mode. Say 'Hey Sloth' followed by your question!">
+            <label class="ambient-toggle" title="Say 'Hey Sloth' followed by your question">
               <input type="checkbox" id="ambientWakeToggle">
               <span class="ambient-toggle-slider"></span>
-              <span class="ambient-toggle-label">🎙️ "Hey Sloth" Wake</span>
+              <span class="ambient-toggle-label">🎙️ "Hey Sloth"</span>
             </label>
-            <button class="qa-chip" data-q="What are the top causal drivers?">Top Drivers</button>
-            <button class="qa-chip" data-q="How does TabPFN compare to Random Forest?">Baseline Score</button>
-            <button class="qa-chip" data-q="Give me a lazy executive summary">Lazy Summary</button>
+            <button class="qa-chip" data-q="What are the top causal drivers?">Drivers</button>
+            <button class="qa-chip" data-q="How does TabPFN compare to Random Forest?">Baseline</button>
+            <button class="qa-chip" data-q="Give me a lazy executive summary">Summary</button>
           </div>
         </div>
         <div class="voice-qa-body">
           <div class="voice-input-group">
-            <input type="text" id="voiceQuestionInput" class="voice-input" placeholder="e.g. Which feature should we prioritize to reduce churn?" />
-            <button id="btnRecordVoice" class="btn btn-secondary btn-icon-only" title="Speak your question (Speech-to-Text)">
+            <input type="text" id="voiceQuestionInput" class="voice-input" placeholder="Ask anything about your data..." />
+            <button id="btnRecordVoice" class="btn btn-secondary btn-icon-only" title="Voice Input">
               <span class="mic-icon">🎤</span>
             </button>
             <button id="btnAskVoice" class="btn btn-primary btn-sm">
-              <span>Ask & Listen</span> 🔊
+              <span>Ask</span> 🔊
             </button>
           </div>
           <div id="voiceAnswerBox" class="voice-answer-box hidden">
             <div class="voice-answer-header">
               <span class="sloth-mini-avatar">🦥</span>
-              <span class="voice-answer-title">Sloth Voice AI</span>
+              <span class="voice-answer-title">Sloth AI</span>
               <span id="voiceAnswerStatus" class="voice-answer-pill">Ready</span>
             </div>
             <p id="voiceAnswerText" class="voice-answer-p"></p>
@@ -363,12 +338,12 @@
   <footer class="app-footer">
     <div class="container footer-content">
       <div class="footer-left">
-        <span class="footer-brand">SlothPFN</span> • Autonomous Zero-Effort Tabular AI Agent
+        <span class="footer-brand">SlothPFN</span>
       </div>
       <div class="footer-right">
-        <span>Powered by <a href="https://priorlabs.ai" target="_blank" rel="noopener">Prior Labs TabPFN</a></span>
+        <span><a href="https://priorlabs.ai" target="_blank" rel="noopener">Prior Labs TabPFN</a></span>
         <span>•</span>
-        <span>MIT Open Source</span>
+        <span>MIT</span>
       </div>
     </div>
   </footer>

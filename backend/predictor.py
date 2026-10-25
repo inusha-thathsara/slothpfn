@@ -423,43 +423,24 @@ class SlothPredictor:
         if task_type == "classification":
             acc = metrics["tabpfn"]["accuracy"]
             base_acc = metrics["baseline"]["accuracy"]
-            speedup = max(1.2, round(metrics["baseline"]["inference_time_sec"] / max(tabpfn_time, 0.001), 1))
 
-            headline = f"Zero-Tuning TabPFN achieved {acc}% accuracy in {tabpfn_time}s flat."
-            summary = (
-                f"You just analyzed {n_rows} records without writing a single line of feature engineering, "
-                f"hyperparameter tuning, or cross-validation loops. TabPFN's pre-trained Bayesian transformer "
-                f"prior outperformed the baseline model ({base_acc}%) by solving the problem in a single forward pass."
-            )
-            key_drivers = (
-                f"The model identified {top_feat_str} as the primary causal drivers behind **{target_column}**. "
-                f"You can prioritize these attributes directly without manual feature selection."
-            )
+            headline = f"TabPFN: {acc}% in {tabpfn_time}s"
+            summary = f"{n_rows} rows analyzed. TabPFN beat baseline ({base_acc}%) with zero tuning."
+            key_drivers = f"Drivers: {top_feat_str}"
         else:
             r2 = metrics["tabpfn"]["r2_score"]
-            rmse = metrics["tabpfn"]["rmse"]
-            headline = f"Predicted **{target_column}** with R² score of {r2} (RMSE: {rmse})."
-            summary = (
-                f"TabPFN extracted continuous causal relationships across {n_rows} rows instantaneously. "
-                f"Rather than iteratively adjusting tree depths or learning rates, the prior foundation model "
-                f"estimated the posterior distribution directly."
-            )
-            key_drivers = (
-                f"Variation in **{target_column}** is most strongly influenced by {top_feat_str}. "
-                f"These features account for the vast majority of predictive variance."
-            )
+            headline = f"TabPFN: R² {r2} in {tabpfn_time}s"
+            summary = f"{n_rows} rows analyzed instantly. Zero tuning."
+            key_drivers = f"Drivers: {top_feat_str}"
 
-        lazy_verdict = (
-            "🦥 **Sloth Verdict:** Go make a cup of coffee. Your predictive model is already complete, "
-            "calibrated, and ready for deployment without touching a hyperparameter."
-        )
+        lazy_verdict = "🦥 Done. Model calibrated. Go take a nap."
 
         return {
             "headline": headline,
             "summary": summary,
             "key_drivers": key_drivers,
             "lazy_verdict": lazy_verdict,
-            "time_saved_estimate": "35 - 50 minutes of manual tuning saved"
+            "time_saved_estimate": "Saved ~45 mins"
         }
 
     def simulate_scenario(

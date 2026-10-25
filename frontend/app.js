@@ -319,18 +319,18 @@ function renderResults(result) {
   elements.slothHeadline.textContent = insights.headline;
   elements.slothTimeSaved.textContent = insights.time_saved_estimate;
   elements.slothSummary.textContent = insights.summary;
-  elements.slothDrivers.innerHTML = `<strong>Causal Drivers:</strong> ${insights.key_drivers}`;
+  elements.slothDrivers.innerHTML = insights.key_drivers;
   elements.slothVerdict.innerHTML = insights.lazy_verdict;
 
   // 2. Metrics & Comparison
   const isClf = result.task_type === 'classification';
   if (isClf) {
     elements.tabpfnScore.textContent = `${result.metrics.tabpfn.accuracy}%`;
-    elements.tabpfnScoreLabel.textContent = 'Accuracy Score';
+    elements.tabpfnScoreLabel.textContent = 'Accuracy';
     elements.tabpfnSpeed.textContent = `${result.metrics.tabpfn.inference_time_sec}s`;
 
     elements.baselineScore.textContent = `${result.metrics.baseline.accuracy}%`;
-    elements.baselineScoreLabel.textContent = 'Random Forest Accuracy';
+    elements.baselineScoreLabel.textContent = 'Baseline';
     elements.baselineSpeed.textContent = `${result.metrics.baseline.inference_time_sec}s`;
 
     const diff = (result.metrics.tabpfn.accuracy - result.metrics.baseline.accuracy).toFixed(1);
@@ -338,11 +338,11 @@ function renderResults(result) {
     elements.speedupFactor.textContent = `${sign}${diff}%`;
   } else {
     elements.tabpfnScore.textContent = result.metrics.tabpfn.r2_score;
-    elements.tabpfnScoreLabel.textContent = 'R² Score (Variance)';
+    elements.tabpfnScoreLabel.textContent = 'R²';
     elements.tabpfnSpeed.textContent = `${result.metrics.tabpfn.inference_time_sec}s`;
 
     elements.baselineScore.textContent = result.metrics.baseline.r2_score;
-    elements.baselineScoreLabel.textContent = 'Baseline R²';
+    elements.baselineScoreLabel.textContent = 'Baseline';
     elements.baselineSpeed.textContent = `${result.metrics.baseline.inference_time_sec}s`;
 
     elements.speedupFactor.textContent = `RMSE: ${result.metrics.tabpfn.rmse}`;

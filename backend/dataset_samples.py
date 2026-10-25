@@ -7,33 +7,33 @@ SAMPLE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "sample_da
 SAMPLES_CATALOG = [
     {
         "id": "telecom_churn",
-        "title": "Telecom Customer Churn",
+        "title": "Customer Churn",
         "filename": "telecom_customer_churn.csv",
         "task": "classification",
         "target": "Churned",
-        "description": "Predict customer attrition from contract terms, tenure, charges, and tech support flags.",
+        "description": "Customer churn attrition",
         "icon": "📞",
         "rows": 180,
         "features": 8
     },
     {
         "id": "housing_prices",
-        "title": "Real Estate Valuation",
+        "title": "Housing Prices",
         "filename": "housing_prices.csv",
         "task": "regression",
         "target": "PriceUSD",
-        "description": "Predict home market valuation from square footage, rooms, age, and neighborhood rating.",
+        "description": "Property market valuation",
         "icon": "🏡",
         "rows": 150,
         "features": 8
     },
     {
         "id": "heart_disease",
-        "title": "Cardiac Health Risk",
+        "title": "Cardiac Risk",
         "filename": "heart_disease_risk.csv",
         "task": "classification",
         "target": "HighRiskDiagnosis",
-        "description": "Predict clinical cardiovascular risk from blood pressure, cholesterol, and stress tests.",
+        "description": "Clinical heart health risk",
         "icon": "❤️",
         "rows": 160,
         "features": 8
