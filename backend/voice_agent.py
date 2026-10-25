@@ -286,7 +286,7 @@ class VoiceAgent:
             "5. NO markdown formatting (*, _, #), NO bullet points, NO raw decimal fractions or symbols."
         )
 
-        for model_id in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+        for model_id in ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"]:
             try:
                 response = client.models.generate_content(
                     model=model_id,
@@ -332,7 +332,7 @@ class VoiceAgent:
             "Do NOT use markdown asterisks or bullet points."
         )
 
-        for model_id in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+        for model_id in ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"]:
             try:
                 response = client.models.generate_content(
                     model=model_id,
