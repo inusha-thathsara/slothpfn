@@ -67,6 +67,7 @@ const elements = {
   voiceAnswerStatus: document.getElementById('voiceAnswerStatus'),
   chatAudioPlayer: document.getElementById('chatAudioPlayer'),
   ambientWakeToggle: document.getElementById('ambientWakeToggle'),
+  btnClearSession: document.getElementById('btnClearSession'),
 };
 
 // ==========================================
@@ -195,6 +196,22 @@ function initUploadEvents() {
       handleFileUpload(fileInput.files[0]);
     }
   });
+
+  if (elements.btnClearSession) {
+    elements.btnClearSession.addEventListener('click', async () => {
+      try {
+        await fetch('/api/ambient/clear', { method: 'POST' });
+      } catch (_) {}
+      state.currentDataset = null;
+      state.predictionResult = null;
+      lastAmbientTimestamp = Date.now() / 1000;
+      elements.datasetDetailsBar.classList.add('hidden');
+      elements.configBar.classList.add('hidden');
+      elements.resultsSection.classList.add('hidden');
+      document.querySelectorAll('.sample-card-btn').forEach(btn => btn.classList.remove('active'));
+      showToast('Cleared. Drop a CSV to start!', '🧹');
+    });
+  }
 }
 
 async function handleFileUpload(file) {

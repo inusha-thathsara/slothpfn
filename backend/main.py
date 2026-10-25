@@ -82,6 +82,23 @@ async def get_ambient_session():
     return {"has_ambient_session": False}
 
 
+@app.post("/api/ambient/clear")
+async def clear_ambient_session():
+    """
+    Clears the active ambient session from disk and memory.
+    """
+    session_path = os.path.join(ROOT_DIR, "active_session.json")
+    if os.path.exists(session_path):
+        try:
+            os.remove(session_path)
+        except Exception:
+            pass
+    SESSION_STATE["df"] = None
+    SESSION_STATE["filename"] = None
+    SESSION_STATE["last_result"] = None
+    return {"status": "cleared", "has_ambient_session": False}
+
+
 @app.get("/api/samples")
 async def list_samples():
     return {"samples": get_sample_catalog()}
