@@ -249,6 +249,32 @@ class SlothPFNAuditTestSuite(unittest.TestCase):
         self.assertEqual(pd.isna(X_train).sum(), 0)
         self.assertEqual(pd.isna(X_test).sum(), 0)
 
+    def test_12_audio_briefing_narrative_distinct_from_screen_text(self):
+        """Audit that audio briefing generates a natural explanation rather than repeating screen labels."""
+        self.client.post("/api/samples/telecom_churn")
+        pred_res = self.client.post("/api/predict", data={
+            "target_column": "Churned",
+            "task_type": "classification"
+        })
+        self.assertEqual(pred_res.status_code, 200)
+        last_result = pred_res.json()
+        screen_headline = last_result["sloth_insights"]["headline"]
+        screen_summary = last_result["sloth_insights"]["summary"]
+
+        briefing_res = self.client.get("/api/voice/briefing-text")
+        self.assertEqual(briefing_res.status_code, 200)
+        data = briefing_res.json()
+        self.assertIn("text", data)
+        audio_text = data["text"]
+
+        # Ensure audio explanation is distinct from screen headline & summary
+        self.assertNotEqual(audio_text, screen_headline)
+        self.assertNotEqual(audio_text, screen_summary)
+        self.assertNotIn("TabPFN: ", audio_text)
+        self.assertGreater(len(audio_text), 80)
+        self.assertTrue(any(w in audio_text.lower() for w in ["customer", "churn", "story", "relax"]))
+
 
 if __name__ == "__main__":
     unittest.main()
+

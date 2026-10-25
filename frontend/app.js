@@ -718,10 +718,10 @@ async function initVoiceAgent() {
 
       if (elements.voiceProviderLabel) {
         if (data.has_elevenlabs) {
-          elements.voiceProviderLabel.textContent = 'ElevenLabs AI Voice Active';
+          elements.voiceProviderLabel.textContent = data.has_gemini ? 'ElevenLabs + Gemini AI' : 'ElevenLabs AI Voice Active';
           elements.voiceStatusBadge.classList.add('elevenlabs');
         } else {
-          elements.voiceProviderLabel.textContent = 'Browser Speech Voice';
+          elements.voiceProviderLabel.textContent = data.has_gemini ? 'Browser Voice (Gemini AI)' : 'Browser Speech Voice';
           elements.voiceStatusBadge.classList.remove('elevenlabs');
         }
       }

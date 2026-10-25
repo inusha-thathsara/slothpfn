@@ -206,8 +206,10 @@ async def simulate_what_if(payload: Dict[str, Any] = Body(...)):
 @app.get("/api/voice/status")
 async def get_voice_status():
     has_key = voice_agent_instance.has_elevenlabs_key()
+    has_gemini = voice_agent_instance.has_gemini_key()
     return {
         "has_elevenlabs": has_key,
+        "has_gemini": has_gemini,
         "provider": "elevenlabs" if has_key else "browser_fallback",
         "voice_id": voice_agent_instance.voice_id,
         "voices": voice_agent_instance.list_voices()
@@ -219,14 +221,57 @@ async def get_voices():
     return {"voices": voice_agent_instance.list_voices()}
 
 
+@app.get("/api/voice/briefing-text")
+async def get_briefing_text():
+    if not SESSION_STATE["last_result"]:
+        return {
+            "text": "No active dataset analyzed yet. Drop a CSV or run a sample to generate an audio explanation.",
+            "powered_by": "none"
+        }
+    text = voice_agent_instance.generate_audio_explanation(
+        SESSION_STATE["last_result"],
+        SESSION_STATE.get("df")
+    )
+    return {
+        "text": text,
+        "powered_by": "gemini" if voice_agent_instance.has_gemini_key() else "sloth_narrator"
+    }
+
+
+@app.post("/api/voice/config")
+async def set_voice_config(payload: Dict[str, Any] = Body(...)):
+    gemini_key = payload.get("gemini_api_key", "").strip()
+    if gemini_key:
+        env_lines = []
+        key_found = False
+        if os.path.exists(ENV_PATH):
+            with open(ENV_PATH, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("GEMINI_API_KEY="):
+                        env_lines.append(f"GEMINI_API_KEY={gemini_key}\n")
+                        key_found = True
+                    else:
+                        env_lines.append(line)
+        if not key_found:
+            env_lines.append(f"GEMINI_API_KEY={gemini_key}\n")
+        with open(ENV_PATH, "w", encoding="utf-8") as f:
+            f.writelines(env_lines)
+        os.environ["GEMINI_API_KEY"] = gemini_key
+        voice_agent_instance._reload_env()
+        return {"status": "success", "has_gemini": voice_agent_instance.has_gemini_key()}
+    return {"status": "no_change", "has_gemini": voice_agent_instance.has_gemini_key()}
+
+
 @app.post("/api/voice/narrate")
 async def narrate_text(payload: Dict[str, Any] = Body(...)):
     text = payload.get("text", "").strip()
     voice_id = payload.get("voice_id")
     if not text:
         if SESSION_STATE["last_result"]:
-            insights = SESSION_STATE["last_result"].get("sloth_insights", {})
-            text = f"{insights.get('headline', '')}. {insights.get('summary', '')} {insights.get('key_drivers', '')}"
+            text = voice_agent_instance.generate_audio_explanation(
+                SESSION_STATE["last_result"],
+                SESSION_STATE.get("df")
+            )
         else:
             raise HTTPException(status_code=400, detail="No text provided to narrate.")
 
@@ -254,8 +299,10 @@ async def narrate_text(payload: Dict[str, Any] = Body(...)):
 async def stream_voice_audio(text: str = "", voice_id: Optional[str] = None):
     if not text:
         if SESSION_STATE["last_result"]:
-            insights = SESSION_STATE["last_result"].get("sloth_insights", {})
-            text = f"{insights.get('headline', '')}. {insights.get('summary', '')} {insights.get('key_drivers', '')}"
+            text = voice_agent_instance.generate_audio_explanation(
+                SESSION_STATE["last_result"],
+                SESSION_STATE.get("df")
+            )
         else:
             raise HTTPException(status_code=400, detail="No text provided to stream.")
 
