@@ -34,3 +34,5 @@ active_session.json
 drop_data/*
 !drop_data/.gitkeep
 
+# DEV.to Article Submissions & Drafts
+docs/*.md
