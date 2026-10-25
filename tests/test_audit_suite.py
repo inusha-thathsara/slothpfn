@@ -1,12 +1,14 @@
 import io
 import os
+import re
 import sys
 import unittest
 import pandas as pd
 from fastapi.testclient import TestClient
 
 # Ensure root directory is on Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, ROOT_DIR)
 
 from backend.main import app, SESSION_STATE
 from backend.predictor import SlothPredictor
@@ -274,7 +276,37 @@ class SlothPFNAuditTestSuite(unittest.TestCase):
         self.assertGreater(len(audio_text), 80)
         self.assertTrue(any(w in audio_text.lower() for w in ["customer", "churn", "story", "relax"]))
 
+    def test_13_frontend_dom_elements_consistency(self):
+        """Audit that all elements referenced in app.js exist in both the elements map and index.html."""
+        js_path = os.path.join(ROOT_DIR, "frontend", "app.js")
+        html_path = os.path.join(ROOT_DIR, "frontend", "index.html")
+
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+
+        html_ids = set(re.findall(r'id="([^"]+)"', html))
+
+        match = re.search(r"const elements = \{([^}]+)\};", js, re.DOTALL)
+        self.assertIsNotNone(match, "Could not locate elements definition in app.js")
+        elements_block = match.group(1)
+
+        pairs = re.findall(r"(\w+):\s*document\.getElementById\('([^']+)'\)", elements_block)
+        defined_props = {prop for prop, el_id in pairs}
+        defined_ids = {el_id for prop, el_id in pairs}
+
+        # Check: Every ID mapped in elements exists in index.html
+        missing_in_html = [el_id for el_id in defined_ids if el_id not in html_ids]
+        self.assertEqual(missing_in_html, [], f"Elements mapped in app.js but missing in index.html: {missing_in_html}")
+
+        # Check: Every elements.<property> used in app.js is defined in elements dictionary
+        usages = set(re.findall(r"elements\.(\w+)", js))
+        missing_in_elements = sorted(list(usages - defined_props))
+        self.assertEqual(missing_in_elements, [], f"Properties accessed on elements but not defined: {missing_in_elements}")
+
 
 if __name__ == "__main__":
     unittest.main()
+
 

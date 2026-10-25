@@ -48,8 +48,10 @@ const elements = {
   simulatorControls: document.getElementById('simulatorControls'),
   btnSimulate: document.getElementById('btnSimulate'),
   simResultValue: document.getElementById('simResultValue'),
+  simConfidenceBarContainer: document.getElementById('simConfidenceBarContainer'),
   simConfidenceText: document.getElementById('simConfidenceText'),
   simProgressBar: document.getElementById('simProgressBar'),
+  simClassProbabilities: document.getElementById('simClassProbabilities'),
   btnExportCSV: document.getElementById('btnExportCSV'),
   toastContainer: document.getElementById('toastContainer'),
   btnPlayBriefing: document.getElementById('btnPlayBriefing'),
@@ -647,11 +649,11 @@ async function runSimulation() {
     elements.simResultValue.textContent = simResult.predicted_value;
 
     if (simResult.task_type === 'classification') {
-      elements.simConfidenceBarContainer.classList.remove('hidden');
-      elements.simConfidenceText.textContent = `${simResult.confidence}%`;
-      elements.simProgressBar.style.width = `${simResult.confidence}%`;
+      if (elements.simConfidenceBarContainer) elements.simConfidenceBarContainer.classList.remove('hidden');
+      if (elements.simConfidenceText) elements.simConfidenceText.textContent = `${simResult.confidence}%`;
+      if (elements.simProgressBar) elements.simProgressBar.style.width = `${simResult.confidence}%`;
 
-      if (simResult.probabilities) {
+      if (elements.simClassProbabilities && simResult.probabilities) {
         elements.simClassProbabilities.innerHTML = simResult.probabilities.map(p => `
           <div class="sim-class-item">
             <span>${p.label}</span>
@@ -660,8 +662,8 @@ async function runSimulation() {
         `).join('');
       }
     } else {
-      elements.simConfidenceBarContainer.classList.add('hidden');
-      elements.simClassProbabilities.innerHTML = '';
+      if (elements.simConfidenceBarContainer) elements.simConfidenceBarContainer.classList.add('hidden');
+      if (elements.simClassProbabilities) elements.simClassProbabilities.innerHTML = '';
     }
   } catch (err) {
     console.error('Simulation error:', err);
