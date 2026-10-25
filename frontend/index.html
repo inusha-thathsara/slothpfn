@@ -261,11 +261,21 @@
 
       <!-- Interactive What-If Scenario Simulator -->
       <div class="card simulator-card">
-        <div class="card-header flex-between">
-          <h3 class="card-title">🎛️ What-If Simulator</h3>
-          <button id="btnSimulate" class="btn btn-primary btn-sm">
-            ⚡ Recalculate
-          </button>
+        <div class="card-header flex-between simulator-card-header">
+          <div class="simulator-header-left">
+            <h3 class="card-title">🎛️ What-If Simulator</h3>
+            <span class="lazy-badge">⚡ Live Auto-Sim</span>
+          </div>
+          <div class="lazy-presets-wrap">
+            <span class="lazy-presets-label">Lazy Presets:</span>
+            <button type="button" id="btnPresetMedian" class="lazy-preset-btn" title="Reset all to typical baseline values">🦥 Chill</button>
+            <button type="button" id="btnPresetMax" class="lazy-preset-btn" title="Push key drivers to high values">⚡ High</button>
+            <button type="button" id="btnPresetMin" class="lazy-preset-btn" title="Drop key drivers to safe minimums">🛡️ Low</button>
+            <button type="button" id="btnPresetRandom" class="lazy-preset-btn" title="Roll a random scenario without thinking">🎲 Surprise</button>
+            <button id="btnSimulate" class="btn btn-primary btn-sm">
+              Recalculate
+            </button>
+          </div>
         </div>
 
         <div class="simulator-layout">

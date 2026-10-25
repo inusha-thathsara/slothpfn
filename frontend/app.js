@@ -47,6 +47,10 @@ const elements = {
   predictionsTableBody: document.getElementById('predictionsTableBody'),
   simulatorControls: document.getElementById('simulatorControls'),
   btnSimulate: document.getElementById('btnSimulate'),
+  btnPresetMedian: document.getElementById('btnPresetMedian'),
+  btnPresetMax: document.getElementById('btnPresetMax'),
+  btnPresetMin: document.getElementById('btnPresetMin'),
+  btnPresetRandom: document.getElementById('btnPresetRandom'),
   simResultValue: document.getElementById('simResultValue'),
   simConfidenceBarContainer: document.getElementById('simConfidenceBarContainer'),
   simConfidenceText: document.getElementById('simConfidenceText'),
@@ -552,14 +556,75 @@ function renderPredictionsTable(predictions, isClf) {
   });
 }
 
-// ==========================================
-// Interactive Simulator
-// ==========================================
+// Debounce timer for zero-effort live auto-simulation
+let simDebounceTimer = null;
+function triggerAutoSimulation() {
+  clearTimeout(simDebounceTimer);
+  simDebounceTimer = setTimeout(() => {
+    runSimulation();
+  }, 160);
+}
+
+function updateSliderTrack(slider) {
+  if (!slider) return;
+  const min = parseFloat(slider.min) || 0;
+  const max = parseFloat(slider.max) || 100;
+  const val = parseFloat(slider.value) || 0;
+  const pct = max > min ? ((val - min) / (max - min)) * 100 : 50;
+  slider.style.backgroundSize = `${pct}% 100%`;
+}
+
+function applyLazyPreset(type) {
+  if (!state.predictionResult) return;
+  const meta = state.predictionResult.feature_metadata;
+  const featureNames = state.predictionResult.feature_names.slice(0, 10);
+
+  featureNames.forEach(feat => {
+    const info = meta[feat];
+    if (!info) return;
+    const input = document.getElementById(`simInput_${feat}`);
+    const valDisplay = document.getElementById(`simVal_${feat}`);
+    if (!input || !valDisplay) return;
+
+    if (info.is_cat) {
+      if (type === 'min' || type === 'median') {
+        input.value = info.categories[0];
+      } else if (type === 'max') {
+        input.value = info.categories[info.categories.length - 1];
+      } else if (type === 'random') {
+        const idx = Math.floor(Math.random() * info.categories.length);
+        input.value = info.categories[idx];
+      }
+      valDisplay.textContent = input.value;
+    } else {
+      let targetVal;
+      const min = Math.floor(info.min);
+      const max = Math.ceil(info.max);
+      if (type === 'median') {
+        targetVal = info.median;
+      } else if (type === 'min') {
+        targetVal = min;
+      } else if (type === 'max') {
+        targetVal = max;
+      } else if (type === 'random') {
+        const step = (max - min) > 50 ? 1 : 0.1;
+        const rand = min + Math.random() * (max - min);
+        targetVal = step === 1 ? Math.round(rand) : Math.round(rand * 10) / 10;
+      }
+      input.value = targetVal;
+      valDisplay.textContent = targetVal;
+      updateSliderTrack(input);
+    }
+  });
+
+  runSimulation();
+}
+
 function renderSimulatorControls(result) {
   const meta = result.feature_metadata;
   elements.simulatorControls.innerHTML = '';
 
-  const featureNames = result.feature_names.slice(0, 10); // Display top 10 features for clean ergonomics
+  const featureNames = result.feature_names.slice(0, 10); // Top 10 features for clean ergonomics
 
   featureNames.forEach(feat => {
     const info = meta[feat];
@@ -567,13 +632,14 @@ function renderSimulatorControls(result) {
 
     const item = document.createElement('div');
     item.className = 'sim-control-item';
+    const formattedTitle = feat.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/_/g, ' ');
 
     if (info.is_cat) {
       // Categorical dropdown
       const optionsHtml = info.categories.map(c => `<option value="${c}">${c}</option>`).join('');
       item.innerHTML = `
         <div class="sim-control-header">
-          <span>${feat}</span>
+          <span title="${feat}">${formattedTitle}</span>
           <span class="sim-control-val" id="simVal_${feat}">${info.categories[0]}</span>
         </div>
         <select class="config-select" id="simInput_${feat}">
@@ -585,6 +651,7 @@ function renderSimulatorControls(result) {
       const sel = item.querySelector(`#simInput_${feat}`);
       sel.addEventListener('change', (e) => {
         document.getElementById(`simVal_${feat}`).textContent = e.target.value;
+        triggerAutoSimulation();
       });
     } else {
       // Numerical slider
@@ -595,16 +662,26 @@ function renderSimulatorControls(result) {
 
       item.innerHTML = `
         <div class="sim-control-header">
-          <span>${feat}</span>
+          <span title="${feat}">${formattedTitle}</span>
           <span class="sim-control-val" id="simVal_${feat}">${initial}</span>
         </div>
-        <input type="range" class="sim-slider" id="simInput_${feat}" min="${min}" max="${max}" step="${step}" value="${initial}">
+        <div class="sim-slider-wrap">
+          <input type="range" class="sim-slider" id="simInput_${feat}" min="${min}" max="${max}" step="${step}" value="${initial}">
+          <div class="sim-slider-bounds">
+            <span>min ${min}</span>
+            <span>max ${max}</span>
+          </div>
+        </div>
       `;
       elements.simulatorControls.appendChild(item);
 
       const slider = item.querySelector(`#simInput_${feat}`);
+      updateSliderTrack(slider);
+
       slider.addEventListener('input', (e) => {
         document.getElementById(`simVal_${feat}`).textContent = e.target.value;
+        updateSliderTrack(e.target);
+        triggerAutoSimulation();
       });
     }
   });
@@ -614,7 +691,11 @@ function renderSimulatorControls(result) {
 }
 
 function initSimulatorEvents() {
-  elements.btnSimulate.addEventListener('click', runSimulation);
+  if (elements.btnSimulate) elements.btnSimulate.addEventListener('click', runSimulation);
+  if (elements.btnPresetMedian) elements.btnPresetMedian.addEventListener('click', () => applyLazyPreset('median'));
+  if (elements.btnPresetMax) elements.btnPresetMax.addEventListener('click', () => applyLazyPreset('max'));
+  if (elements.btnPresetMin) elements.btnPresetMin.addEventListener('click', () => applyLazyPreset('min'));
+  if (elements.btnPresetRandom) elements.btnPresetRandom.addEventListener('click', () => applyLazyPreset('random'));
 }
 
 async function runSimulation() {
