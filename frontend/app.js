@@ -44,7 +44,6 @@ const elements = {
   baselineSpeed: document.getElementById('baselineSpeed'),
   speedupFactor: document.getElementById('speedupFactor'),
   secondaryChartTitle: document.getElementById('secondaryChartTitle'),
-  secondaryChartHint: document.getElementById('secondaryChartHint'),
   predictionsTableBody: document.getElementById('predictionsTableBody'),
   simulatorControls: document.getElementById('simulatorControls'),
   btnSimulate: document.getElementById('btnSimulate'),
